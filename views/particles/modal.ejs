@@ -1,0 +1,73 @@
+<!-- Объединенное модальное окно для выбора типа работы и ввода комментария -->
+<div class="modal fade" id="workModal" tabindex="-1" aria-labelledby="workModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="workModalLabel">Введите данные</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="workTypeSelect" class="form-label">Выберите категорию работы</label>
+                    <select class="form-select" id="workTypeSelect">
+                        <option value="Гос. задание">Гос. задание</option>
+                        <option value="Коммерция">Коммерция</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="workAddressInput" class="form-label">Адрес работы</label>
+                    <input type="text" class="form-control" id="workAddressInput" name="workAddress">
+                </div>
+                <div class="mb-3">
+                    <label for="workVolumeInput" class="form-label">Объем работы</label>
+                    <input type="text" class="form-control" id="workVolumeInput" name="workVolume">
+                </div>
+                <div class="mb-3">
+                    <label for="commentInput" class="form-label">Введите комментарий</label>
+                    <textarea class="form-control" id="commentInput" rows="4" placeholder="Комментарий"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="saveWork">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для отображения сообщений об успешном сохранении или ошибке -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Сообщение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="messageContent">
+                <!-- Сообщение будет установлено через JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для подтверждения удаления -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить этот объект?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" id="confirmDeleteButton" class="btn btn-danger">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>

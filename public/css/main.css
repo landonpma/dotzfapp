@@ -1,0 +1,554 @@
+
+
+body, html, .main {
+	
+	height: 100%;
+	margin: 0;
+}
+
+.map-container {
+	position: relative;
+	height: calc(100vh - 66px); /* За вычетом высоты header */
+	width: 100%;
+}
+
+.decoration-link a {
+	text-decoration: none; /*Убираем стандартное подчёркивание ссылки если оно ещё не убрано*/
+	display: inline-block;
+	color: #0078ff; /*Задаём цвет ссылки*/
+}
+
+.decoration-link a:after {
+	display: block; /*превращаем его в блочный элемент*/
+	content: ""; /*контента в данном блоке не будет поэтому в кавычках ничего не ставим*/
+	height: 2px; /*задаём высоту линии*/
+	width: 0; /*задаём начальную ширину элемента (линии)*/
+	background-color: #0078ff; /*цвет фона элемента*/
+	transition: width 0.3s ease-in-out; /*данное свойство отвечает за плавное изменение ширины. Здесь можно задать время анимации в секундах (в данном случае задано 0.4 секунды)*/
+}
+
+.decoration-link a:hover:after,
+.decoration-link a:focus:after {
+	width: 100%;
+}
+
+.decoration-link a:hover {
+	color: #0078ff;
+}
+
+.decoration-link a.active:after {
+	color: #0078ff;
+	width: 100%; /* Линия под активной ссылкой */
+}
+
+.toolbar-left {
+	position: absolute;
+	z-index: 1000;
+	bottom: 10px;
+	left: 10px;
+	display: flex;
+	align-items: center;
+	padding: 10px;
+}
+
+.toolbar-left button {
+	margin: 10px;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 25px; /* Скругленные углы */
+	background-color: #FFFFFF; /* Белый фон */
+	color: #000000; /* Черный текст */
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.toolbar-left button:hover {
+	background-color: #0078ff; /* Синий фон при наведении */
+	color: #FFFFFF; /* Белый текст при наведении */
+}
+
+.toolbar-right {
+	position: absolute;
+	z-index: 1000;
+	bottom: 20px;
+	right: 10px;
+	display: flex;
+	align-items: center;
+	padding: 10px;
+	transition: right 0.3s; /* Добавлен переход для плавного перемещения */
+}
+
+/* Стили для кастомного select */
+.custom-select-wrapper {
+	position: relative;
+	display: inline-block;
+	width: 200px;
+}
+
+.custom-select {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 25px; /* Скругленные углы */
+	background-color: #FFFFFF; /* Белый фон */
+	color: #000000; /* Черный текст */
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.custom-select:hover,
+.custom-select:focus {
+	background-color: #0078ff; /* Синий фон при наведении и фокусе */
+	color: #FFFFFF; /* Белый текст при наведении и фокусе */
+}
+
+.custom-select-arrow {
+	margin-left: 10px;
+	transition: transform 0.3s;
+}
+
+.custom-select.open .custom-select-arrow {
+	transform: rotate(180deg);
+}
+
+.custom-options {
+	position: absolute;
+	font-weight: bold;
+	margin-bottom: 10px;
+	bottom: 100%; /* Позиционирование вверх */
+	left: 0;
+	right: 0;
+	border-radius: 20px; /* Скругленные углы сверху */
+	background-color: #FFFFFF;
+	color: #000000;
+	overflow: hidden;
+	max-height: 0;
+	opacity: 0;
+	transition: max-height 0.3s, opacity 0.3s;
+	z-index: 1000;
+}
+
+.custom-select.open + .custom-options {
+	max-height: 300px;
+	opacity: 1;
+}
+
+.custom-option {
+	padding: 10px 20px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.custom-option input {
+	margin-right: 10px;
+}
+
+.custom-option:hover {
+	background-color: #0078ff; /* Синий фон при наведении */
+	color: #FFFFFF; /* Белый текст при наведении */
+}
+
+#customBalloon {
+	position: absolute;
+	top: 20px;
+	left: 20px; /* Перемещаем balloon в левый верхний угол */
+	background-color: #0078ff;
+	color: #FFFFFF;
+	padding: 10px 20px 10px 20px;
+	border-radius: 20px;
+	display: none;
+	z-index: 1000;
+}
+
+/* Медиа-запрос для изменения направления панели инструментов при ширине 800px и меньше */
+@media (max-width: 800px) {
+	.toolbar-left {
+		flex-direction: column; /* Изменяем направление на колонку */
+		bottom: 10px; /* Убираем позиционирование по нижнему краю */
+		left: 10px; /* Позиционируем по верхнему краю */
+	}
+}
+
+.navbar-brand img {
+	height: 40px;
+}
+
+
+.highlight {
+	stroke-opacity: 10; /* Пример изменения прозрачности линии */
+	fill-opacity: 10; /* Пример изменения прозрачности заполнения */
+	stroke: #000000; /* Пример изменения цвета */
+}
+
+.header-section {
+	background-color: #fff;
+	box-shadow: 0 0 2px 0 rgba(0, 0, 0, .2);
+}
+
+.navbar-nav .nav-link {
+	font-weight: 500;
+	color: #000;
+}
+
+.navbar-nav .nav-link:hover {
+	color: #0078ff;
+}
+
+.btn-outline-success {
+	color: #000;
+	border-color: #000;
+}
+
+.btn-outline-success:hover {
+	color: #fff;
+	background-color: #000;
+	border-color: #000;
+}
+
+/* Основные стили для диалогового окна */
+.edit-dialog {
+	position: fixed;
+	top: 0;
+	right: -400px; /* Изменено на right */
+	width: 300px;
+	height: 100%;
+	background-color: #fff;
+	transition: right 0.3s; /* Изменено на right */
+	z-index: 1000;
+	padding: 20px;
+}
+
+.edit-dialog.open {
+	right: 0;
+}
+
+.edit-dialog-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.edit-dialog-header h5 {
+	font-weight: bold;
+}
+
+.close-button {
+	background: none;
+	border: none;
+	font-size: 2.2rem;
+	cursor: pointer;
+	color: #0078ff; /* Цвет кнопки закрытия */
+	margin-bottom: 12px;
+}
+
+.edit-dialog-content {
+	overflow-y: auto;
+	height: calc(100% - 66px); /* Высота содержимого окна с учетом высоты заголовка */
+}
+
+.form-label {
+	font-weight: bold;
+}
+
+.form-control {
+	border-radius: 10px; /* Скругленные углы для полей ввода */
+}
+
+.btn {
+	margin-top: 10px;
+	border-radius: 25px; /* Скругленные углы */
+	font-weight: bold;
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.btn-primary {
+	background-color: #FFFFFF; /* Белый фон */
+	color: #000000; /* Черный текст */
+	border: none;
+}
+
+.btn-primary:hover {
+	background-color: #0078ff; /* Синий фон при наведении */
+	color: #FFFFFF; /* Белый текст при наведении */
+}
+
+.btn-danger {
+	background-color: #FFFFFF; /* Белый фон */
+	color: #000000; /* Черный текст */
+	border: none;
+}
+
+.btn-danger:hover {
+	background-color: #0078ff; /* Синий фон при наведении */
+	color: #FFFFFF; /* Белый текст при наведении */
+}
+
+/* Убедитесь, что диалоговое окно занимает высоту тега main */
+.edit-dialog {
+	height: calc(100% - 66px); /* За вычетом отступов */
+	top: 66px; /* Отступ сверху для избегания блока header */
+}
+
+/* Основные стили для dropdown menu */
+.dropdown-menu {
+	position: fixed; /* Закрепляем меню на экране */
+	top: 66px; /* Отступ от верхнего края, чтобы меню начиналось сразу под header */
+	right: 0; /* Прижимаем меню к правому краю */
+	width: 160px; /* Устанавливаем ширину меню */
+	background-color: #fff; /* Белый фон */
+	border: none; /* Убираем границу */
+	border-radius: 4px; /* Скругленные углы */
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Легкая тень для выделения */
+	z-index: 1500;
+	
+}
+
+.navbar-nav .nav-link {
+	font-weight: bold; /* Полужирный текст */
+	padding: 10px 15px; /* Отступы */
+	transition: color 0.3s; /* Плавный переход цвета */
+}
+
+.navbar-nav .nav-link:hover {
+	color: #007BFF; /* Цвет текста при наведении */
+}
+
+.dropdown-item {
+	font-weight: bold; /* Полужирный текст */
+	padding: 10px 15px; /* Отступы */
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход цвета и фона */
+}
+
+.dropdown-item:hover {
+	background-color: #f8f9fa; /* Фон при наведении */
+	color: #007BFF; /* Цвет текста при наведении */
+}
+
+.dropdown-divider {
+	margin: 0.5rem 0; /* Отступы сверху и снизу */
+	border-top: 1px solid #e9ecef; /* Тонкая линия */
+}
+
+
+.dashboard {
+	display: flex;
+}
+
+.video-container {
+	border-radius: 30px;
+	margin-left: 20px;
+	margin-right: 20px;
+	overflow: hidden;
+	max-width: 60%;
+	min-width: 300px;
+	height: 60vh;
+	position: relative;
+}
+
+.video-container video {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.weather-widget {
+	position: relative;
+	margin: 20px;
+	padding: 20px;
+	background: #f5f5f5;
+	border-radius: 30px;
+	min-width: 340px;
+}
+
+.weather-widget h5 {
+	font-weight: 200;
+}
+
+.temperature {
+	font-size: 4rem;
+	font-weight: bold;
+	margin-right: 10px;
+}
+
+.weather-icon {
+	display: inline-block;
+}
+
+.wind, .humidity {
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	font-size: 0.9rem;
+}
+
+.wind svg, .humidity svg {
+	width: 20px;
+	height: 20px;
+	margin-right: 5px;
+}
+
+.wind-humidity {
+	margin-left: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+}
+
+
+/* Стили для виджета энергопотребления */
+.energy-consumption-widget {
+	position: relative;
+	margin: 20px 20px 20px 0;
+	padding: 20px;
+	background: #f5f5f5;
+	border-radius: 30px;
+	width: 40vw;
+}
+
+.energy-consumption-widget h5 {
+	font-weight: 200;
+}
+
+.consumption {
+	display: flex;
+	flex-direction: column;
+}
+
+.consumption .electricity,
+.consumption .heat,
+.consumption .water {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+/* Стили для раздела событий в Москве */
+.moscow-events {
+	position: relative;
+	margin: 20px 20px 20px 0;
+	padding: 20px;
+	background: #f5f5f5;
+	border-radius: 30px;
+	width: 100vw;
+}
+
+.moscow-events h5 {
+	font-weight: 200;
+}
+
+.moscow-events .event-item {
+	display: flex;
+	align-items: center;
+	margin-bottom: 10px;
+	opacity: 0;
+	transition: opacity 1s;
+}
+
+.moscow-events .event-item img {
+	width: 100px;
+	height: 100px;
+	margin-right: 10px;
+}
+
+.moscow-events .event-item p {
+	font-weight: bold;
+}
+
+.moscow-events .event-item.active {
+	opacity: 1;
+	transition: opacity 1s;
+}
+
+
+.fade-out {
+	opacity: 0;
+	transition: opacity 1s;
+}
+
+.moscow-events .event-item .arrow-link {
+	position: absolute;
+	right: 20px;
+	bottom: 40px;
+	width: 24px;
+	height: 24px;
+	background: url('../icons/arrow-up-right.svg') no-repeat center center;
+	background-size: contain;
+}
+
+
+/* Стили для раздела текущих событий */
+.current-events {
+	position: relative;
+	margin: 0 0 20px 20px;
+	padding: 20px;
+	background: #f5f5f5;
+	border-radius: 30px;
+	width: 80vw;
+	height: 60vh;
+}
+
+.current-events h5 {
+	font-weight: 200;
+}
+
+.current-events .events-list {
+	overflow: hidden; /* Убираем скролл */
+}
+
+.current-events table {
+	width: 100%;
+	border-collapse: collapse;
+	border: none; /* Убираем границы таблицы */
+}
+
+.current-events th, .current-events td {
+	border: none; /* Убираем границы таблицы */
+	padding: 8px;
+}
+
+.current-events th {
+	text-align: left;
+}
+
+.current-events .pagination {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 10px;
+}
+
+.current-events .pagination button {
+	margin: 10px;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 25px; /* Скругленные углы */
+	background-color: #FFFFFF; /* Белый фон */
+	color: #000000; /* Черный текст */
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.current-events .pagination button:hover {
+	background-color: #0078ff; /* Синий фон при наведении */
+	color: #FFFFFF; /* Белый текст при наведении */
+}
+
+#additionalFields {
+	margin-top: 15px;
+}
+
+#additionalFields .form-group {
+	margin-bottom: 10px;
+}
+
+.form-group label {
+	font-weight: bold;
+}
