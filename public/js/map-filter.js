@@ -88,6 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (line.work_volume) {
                                 content += `<strong>Объем работы:</strong> ${line.work_volume}<br>`;
                             }
+                            if (line.distance) {
+                                content += `<strong>Протяженность:</strong> ${line.distance}<br>`;
+                            }
                             if (line.start_date) {
                                 content += `<strong>Дата начала:</strong> ${line.start_date}<br>`;
                             }
@@ -147,25 +150,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             editDialog.classList.add('open');
                             document.querySelector('.toolbar-right').style.right = '320px';
 
+                            const bounds = geoObject.geometry.getBounds()
+                            myMap.setBounds(bounds, {
+                                checkZoomRange: true,
+                                duration: 500
+                            })
+
                             // Устанавливаем выделение объекта на карте
                             if (selectedGeoObject) {
-                                selectedGeoObject.selected = false;
-                                selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
-                                selectedGeoObject.options.set('strokeWidth', 3);
+                                selectedGeoObject.selected = false
+                                selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor)
+                                selectedGeoObject.options.set('strokeWidth', 3)
                             }
-                            selectedGeoObject = geoObject;
-                            geoObject.selected = true;
-                            geoObject.originalStrokeColor = strokeColor;
-                            geoObject.options.set('strokeColor', '#0078ff');
-                            geoObject.options.set('strokeWidth', 5);
-                        });
+                            selectedGeoObject = geoObject
+                            geoObject.selected = true
+                            geoObject.originalStrokeColor = line.line_color || '#000000'
+                            geoObject.options.set('strokeColor', '#0078ff')
+                            geoObject.options.set('strokeWidth', 5)
+                        })
 
-                        myMap.geoObjects.add(geoObject);
-                    });
+                        myMap.geoObjects.add(geoObject)
+                    })
                 } else {
-                    showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message);
+                    showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message)
                 }
-            });
+            })
     }
 
     loadLines([]) // Изначальная загрузка всех линий

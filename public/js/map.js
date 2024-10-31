@@ -243,37 +243,32 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
         const comment = document.getElementById('commentInput').value;
         const workAddress = document.getElementById('workAddressInput').value; // Новое поле
         const workVolume = document.getElementById('workVolumeInput').value; // Новое поле
+        const distance = document.getElementById('distanceInput').value; // Новое поле
 
-        if (workType && comment && workAddress && workVolume) {
+        if (workType && comment && workAddress && workVolume && distance) {
             const workModal = bootstrap.Modal.getInstance(workModalElement);
             workModal.hide();
 
-            // Сохранение всех объектов в одну запись
             fetch('/save-line', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    objects: objects, // Содержит все нарисованные объекты в одном цикле
+                    objects: objects,
                     workType: workType,
                     comment: comment,
                     workAddress: workAddress,
-                    workVolume: workVolume
+                    workVolume: workVolume,
+                    distance: distance // Отправляемое значение протяженности
                 })
             }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessageModal('Линии/Области успешно сохранены.');
+                        showMessageModal('Объекты успешно сохранены.');
                         loadLines('');
-                        startDrawingButton.style.display = 'inline';
-                        stopDrawingButton.style.display = 'none';
-                        saveDrawingButton.style.display = 'none';
-                        clearDrawingButton.style.display = 'none';
-                        toggleModeButton.style.display = 'none';
-                        drawing = false;
                     } else {
-                        showMessageModal('Ошибка при сохранении линий/областей: ' + data.message);
+                        showMessageModal('Ошибка при сохранении объектов: ' + data.message);
                     }
                 });
         } else {
@@ -457,6 +452,9 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                             }
                             if (line.work_volume) {
                                 content += `<strong>Объем работы:</strong> ${line.work_volume}<br>`;
+                            }
+                            if (line.distance) {
+                                content += `<strong>Протяженность:</strong> ${line.distance}<br>`;
                             }
                             if (line.start_date) {
                                 content += `<strong>Дата начала:</strong> ${line.start_date}<br>`;

@@ -59,10 +59,11 @@ db.serialize(() => {
       completed BOOLEAN DEFAULT 0,
       work_address TEXT,
       work_volume TEXT,
-      start_date TEXT,  -- Новое поле для даты начала
-      end_date TEXT,    -- Новое поле для даты окончания
-      equipment TEXT,   -- Новое поле для типа техники
-      equipment_count INTEGER, -- Новое поле для количества техники
+      start_date TEXT,
+      end_date TEXT,
+      equipment TEXT,
+      equipment_count INTEGER,
+      distance TEXT, 
       FOREIGN KEY(username) REFERENCES users(username)
     )
   `)
@@ -242,15 +243,15 @@ app.post('/login', (req, res) => {
 
 
 app.post('/save-line', (req, res) => {
-    const {objects, workType, comment, workAddress, workVolume, startDate, endDate, equipment, equipmentCount} = req.body;
+    const {objects, workType, comment, workAddress, workVolume, startDate, endDate, equipment, equipmentCount, distance} = req.body;
     const username = req.session.user.username;
     const createdAt = moment().format('YYYY-MM-DD HH:mm:ss');
     const lineColor = getLineColor(workType);
 
-    const stmt = db.prepare('INSERT INTO lines (username, coordinates, work_type, comment, line_color, type, created_at, work_address, work_volume, start_date, end_date, equipment, equipment_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    const stmt = db.prepare('INSERT INTO lines (username, coordinates, work_type, comment, line_color, type, created_at, work_address, work_volume, start_date, end_date, equipment, equipment_count, distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
     objects.forEach(obj => {
-        stmt.run(username, JSON.stringify(obj.coordinates), workType, comment, lineColor, obj.type, createdAt, workAddress, workVolume, startDate, endDate, equipment, equipmentCount);
+        stmt.run(username, JSON.stringify(obj.coordinates), workType, comment, lineColor, obj.type, createdAt, workAddress, workVolume, startDate, endDate, equipment, equipmentCount, distance);
     });
 
     stmt.finalize((err) => {

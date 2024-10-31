@@ -22,6 +22,7 @@
     "intro.js": "^7.2.0",
     "moment": "^2.30.1",
     "newsapi": "^2.4.1",
+    "pg": "^8.13.1",
     "playwright-webkit": "^1.45.0",
     "sqlite3": "^5.1.7"
   }
