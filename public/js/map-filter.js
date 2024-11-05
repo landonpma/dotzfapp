@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const customOptionsItems = document.querySelectorAll('.custom-option input')
     const editDialog = document.querySelector('.edit-dialog')
     const toolbarRight = document.querySelector('.toolbar-right')
-    const editWorkTypeInput = document.getElementById('editWorkType')
     const editCommentInput = document.getElementById('editComment')
     const customBalloon = document.getElementById('customBalloon')
     const closeEditDialogButton = document.getElementById('closeEditDialog') // Добавлено
@@ -201,3 +200,4 @@ document.addEventListener('DOMContentLoaded', () => {
         customBalloon.style.display = 'none' // Скрываем customBalloon
     }
 })
+

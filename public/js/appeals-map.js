@@ -119,14 +119,63 @@ ymaps.modules.define('ext.paintOnMap', ['meta', 'util.extend', 'pane.EventsPane'
 
 let myMap
 let selectedGeoObject = null
-
+let isHybrid = false;
 
 ymaps.ready(['ext.paintOnMap']).then(function () {
     myMap = new ymaps.Map('map', {
-        center: [55.39, 37.33], zoom: 10, controls: []
+        center: [55.39, 37.33],
+        zoom: 10,
+        controls: []
     }, {
         suppressMapOpenBlock: true
-    })
+    });
+
+    // Определите стили карты, проверяя их доступность
+    const availableMapStyles = {
+        standard: 'yandex#map',
+        hybrid: 'yandex#hybrid'
+    };
+
+    // Фильтруем только доступные стили
+    const mapStyles = Object.fromEntries(Object.entries(availableMapStyles).filter(([, value]) => value));
+
+    const styleSelector = document.getElementById('mapStyleSelector');
+    styleSelector.addEventListener('change', function () {
+        const selectedStyle = styleSelector.value;
+        if (myMap && mapStyles[selectedStyle]) {
+            try {
+                myMap.setType(mapStyles[selectedStyle]);
+            } catch (error) {
+                console.error("Ошибка при установке типа карты:", error);
+                alert("Этот тип карты не поддерживается.");
+                styleSelector.value = "standard"; // Вернуть на стандартный тип в случае ошибки
+                myMap.setType(mapStyles["standard"]);
+            }
+        } else {
+            console.error("Карта не инициализирована или выбранный тип карты недопустим");
+        }
+    });
+
+    const mapStyleButton = document.getElementById('mapStyleSelector');
+    mapStyleButton.innerText = 'Стандарт'; // Начальное состояние кнопки
+
+    // Обработчик для переключения стиля карты
+    mapStyleButton.addEventListener('click', function () {
+        isHybrid = !isHybrid; // Переключаем состояние
+        const selectedStyle = isHybrid ? availableMapStyles.hybrid : availableMapStyles.standard;
+
+        // Меняем стиль карты и текст кнопки
+        try {
+            myMap.setType(selectedStyle);
+            mapStyleButton.innerText = isHybrid ? 'Гибрид' : 'Стандарт';
+        } catch (error) {
+            console.error("Ошибка при установке стиля карты:", error);
+            alert("Этот стиль карты не поддерживается.");
+            isHybrid = false;
+            myMap.setType(availableMapStyles.standard);
+            mapStyleButton.innerText = 'Стандарт';
+        }
+    });
 
     var paintProcess
     var drawing = false
@@ -159,11 +208,16 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'))
     const confirmDeleteButton = document.getElementById('confirmDeleteButton')
     const completedCheckbox = document.getElementById('completedCheckbox');
-    const startDateInput = document.getElementById('editStartDate');
     const endDateInput = document.getElementById('editEndDate');
     const equipmentInput = document.getElementById('editEquipment');
     const equipmentCountInput = document.getElementById('editEquipmentCount');
     const additionalFields = document.getElementById('additionalFields');
+    const inProgressCheckbox = document.getElementById('inProgressCheckbox');
+    const inProgressStartDate = document.getElementById('inProgressStartDate')
+    const deletePhotoButton = document.getElementById('deletePhotoButton');
+    const openUploadModalButton = document.getElementById('openUploadModalButton');
+    const uploadPhotoButton = document.getElementById('uploadPhotoButton');
+    const photoInput = document.getElementById('photoInput');
 
 
     let currentEditObject = null
@@ -241,11 +295,11 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     saveWorkButton.onclick = function () {
         const workType = document.getElementById('workTypeSelect').value;
         const comment = document.getElementById('commentInput').value;
-        const workAddress = document.getElementById('workAddressInput').value; // Новое поле
-        const workVolume = document.getElementById('workVolumeInput').value; // Новое поле
-        const distance = document.getElementById('distanceInput').value; // Новое поле
+        const workAddress = document.getElementById('workAddressInput').value;
+        const workVolume = document.getElementById('workVolumeInput').value;
+        const distance = document.getElementById('distanceInput').value;
 
-        if (workType && comment && workAddress && workVolume && distance) {
+        if (workType && workAddress && workVolume && distance) {
             const workModal = bootstrap.Modal.getInstance(workModalElement);
             workModal.hide();
 
@@ -260,13 +314,21 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                     comment: comment,
                     workAddress: workAddress,
                     workVolume: workVolume,
-                    distance: distance // Отправляемое значение протяженности
+                    distance: distance
                 })
             }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         showMessageModal('Объекты успешно сохранены.');
                         loadLines('');
+
+                        drawing = false;
+                        startDrawingButton.style.display = 'inline';
+                        stopDrawingButton.style.display = 'none';
+                        saveDrawingButton.style.display = 'none';
+                        clearDrawingButton.style.display = 'none';
+                        toggleModeButton.style.display = 'none';
+                        startTutorialButton.style.display = 'none';
                     } else {
                         showMessageModal('Ошибка при сохранении объектов: ' + data.message);
                     }
@@ -277,12 +339,10 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     };
 
     closeEditDialogButton.onclick = function () {
-        // Закрытие диалогового окна редактирования
         editDialog.classList.remove('open');
         currentEditObject = null;
         document.querySelector('.toolbar-right').style.right = '10px';
 
-        // Сброс выделения геообъекта
         if (selectedGeoObject) {
             selectedGeoObject.selected = false;
             selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
@@ -290,48 +350,68 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
             selectedGeoObject = null;
         }
 
-        // Скрываем customBalloon
         customBalloon.style.display = 'none';
 
-        // Сбрасываем поля редактирования
         resetEditDialog();
     };
 
+    // Логика для отображения поля inProgressStartDate при включении inProgressCheckbox
+    inProgressCheckbox.addEventListener('change', function () {
+        const isChecked = inProgressCheckbox.checked
+        inProgressStartDate.style.display = isChecked ? 'block' : 'none'
+    })
+
+    // Логика для отображения дополнительных полей при включении completedCheckbox
     completedCheckbox.addEventListener('change', function () {
-        const isChecked = completedCheckbox.checked;
-        additionalFields.style.display = isChecked ? 'block' : 'none';
-    });
+        const isChecked = completedCheckbox.checked
+        additionalFields.style.display = isChecked ? 'block' : 'none'
+    })
 
     saveEditButton.onclick = function () {
         if (currentEditObject) {
-            // Проверка состояния чекбокса и необходимости обязательных данных
             if (completedCheckbox.checked) {
-                // Проверка на заполнение всех обязательных полей
-                if (!startDateInput.value || !endDateInput.value || !equipmentInput.value || !equipmentCountInput.value) {
+                // Проверяем, заполнены ли все необходимые поля для завершенного объекта
+                if (!endDateInput.value || !equipmentInput.value || !equipmentCountInput.value) {
                     showMessageModal('Пожалуйста, заполните все обязательные поля перед сохранением завершенного объекта.');
-                    return; // Останавливаем выполнение, если поля не заполнены
+                    return;
                 }
 
-                // Обновляем значения из дополнительных полей
-                currentEditObject.startDate = startDateInput.value;
-                currentEditObject.endDate = endDateInput.value;
-                currentEditObject.equipment = equipmentInput.value;
-                currentEditObject.equipmentCount = parseInt(equipmentCountInput.value, 10);
-                currentEditObject.lineColor = '#00FF00'; // Зеленый цвет, если выполнено
+                // Устанавливаем данные завершенного объекта
+                currentEditObject.endDate = endDateInput.value; // Дата завершения работы
+                currentEditObject.equipment = equipmentInput.value; // Оборудование
+                currentEditObject.equipmentCount = parseInt(equipmentCountInput.value, 10); // Количество оборудования
+                currentEditObject.lineColor = '#00FF00'; // Устанавливаем цвет для завершенного объекта
+                currentEditObject.completed = 1; // Отмечаем объект как завершенный
+                currentEditObject.inProgress = 0; // Сбрасываем статус выполнения
+            } else if (inProgressCheckbox.checked) {
+                // Проверяем, заполнено ли поле даты начала для объекта в процессе выполнения
+                if (!inProgressStartDate.value) {
+                    showMessageModal('Пожалуйста, укажите дату начала для объекта в процессе выполнения.');
+                    return;
+                }
+
+                // Устанавливаем данные для объекта в процессе выполнения
+                currentEditObject.startDate = inProgressStartDate.value; // Дата начала работы
+                currentEditObject.lineColor = '#0000FF'; // Устанавливаем цвет для объектов в процессе выполнения
+                currentEditObject.completed = 0; // Сбрасываем статус завершения
+                currentEditObject.inProgress = 1; // Отмечаем объект как в процессе выполнения
+                currentEditObject.endDate = null; // Сбрасываем дату завершения
+                currentEditObject.equipment = null;
+                currentEditObject.equipmentCount = null;
             } else {
-                // Если чекбокс не установлен, сбрасываем дополнительные поля
-                currentEditObject.startDate = null;
+                // Сбрасываем данные, если оба чекбокса не установлены
                 currentEditObject.endDate = null;
                 currentEditObject.equipment = null;
                 currentEditObject.equipmentCount = null;
-                currentEditObject.lineColor = getLineColor(currentEditObject.workType); // Определяем цвет в зависимости от типа работы
+                currentEditObject.lineColor = getLineColor(currentEditObject.workType);
+                currentEditObject.completed = 0;
+                currentEditObject.inProgress = 0;
+                currentEditObject.startDate = null; // Сбрасываем дату начала
             }
 
-            // Обновление значений из остальных полей
             currentEditObject.comment = editCommentInput.value;
-            currentEditObject.completed = completedCheckbox.checked ? 1 : 0; // Установка completed в 1 или 0
 
-            // Отправка данных на сервер для обновления объекта
+            // Отправляем данные на сервер
             fetch('/update-line', {
                 method: 'POST',
                 headers: {
@@ -345,10 +425,11 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                     lineColor: currentEditObject.lineColor,
                     type: currentEditObject.type,
                     completed: currentEditObject.completed,
+                    inProgress: currentEditObject.inProgress,
                     startDate: currentEditObject.startDate,
-                    endDate: currentEditObject.endDate,
-                    equipment: currentEditObject.equipment,
-                    equipmentCount: currentEditObject.equipmentCount
+                    endDate: currentEditObject.endDate, // Отправляем дату завершения
+                    equipment: currentEditObject.equipment, // Отправляем оборудование
+                    equipmentCount: currentEditObject.equipmentCount // Отправляем количество оборудования
                 })
             }).then(response => response.json())
                 .then(data => {
@@ -358,7 +439,6 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                         editDialog.classList.remove('open');
                         document.querySelector('.toolbar-right').style.right = '10px';
 
-                        // Снятие выделения с объекта
                         if (selectedGeoObject) {
                             selectedGeoObject.selected = false;
                             selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
@@ -366,7 +446,6 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                             selectedGeoObject = null;
                         }
 
-                        // Сбрасываем поля редактирования
                         resetEditDialog();
                     } else {
                         showMessageModal('Ошибка при обновлении объекта: ' + data.message);
@@ -376,8 +455,11 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                     console.error('Ошибка при отправке данных на сервер:', error);
                     showMessageModal('Ошибка при отправке данных на сервер.');
                 });
+
+            customBalloon.style.display = 'none';
         }
     };
+
 
     deleteButton.onclick = function () {
         if (currentEditObject) {
@@ -410,6 +492,8 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                     }
                 })
         }
+
+        customBalloon.style.display = 'none';
     }
 
     function loadLines(filterWorkTypes) {
@@ -422,7 +506,6 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                         var coordinates = JSON.parse(line.coordinates);
                         var geoObject;
 
-                        // Используем цвет, сохраненный в базе данных
                         var strokeColor = line.line_color;
 
                         if (line.type === 'Polygon') {
@@ -437,6 +520,11 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                             geoObject = new ymaps.Polyline(coordinates, {}, {
                                 strokeColor: strokeColor, strokeOpacity: 0.6, strokeWidth: 2
                             });
+                        }
+
+                        // Если объект "в процессе" и окрашен в синий, запускаем мигающий эффект
+                        if (line.in_progress) {
+                            startSmoothBlinking(geoObject);
                         }
 
                         geoObject.events.add('mouseenter', function (e) {
@@ -471,6 +559,9 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                             if (line.comment) {
                                 content += `<strong>Комментарий:</strong> ${line.comment}<br>`;
                             }
+                            if (line.photo) {
+                                content += `<img src="${line.photo}" alt="Фото объекта" style="max-width: 500px; max-height: 50vh; margin-bottom: 10px; margin-top: 10px; border-radius: 20px;"><br>`;
+                            }
 
                             customBalloon.innerHTML = content;
 
@@ -494,17 +585,16 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                                 coordinates: line.coordinates,
                                 lineColor: strokeColor,
                                 type: line.type,
-                                completed: line.completed // Новый атрибут
+                                completed: line.completed,
+                                inProgress: line.in_progress, // Статус "в процессе"
+                                startDate: line.start_date || null
                             };
 
-                            // Устанавливаем значения в поля редактирования
                             editCommentInput.value = line.comment;
                             completedCheckbox.checked = currentEditObject.completed === 1;
 
-                            // Если объект завершен (completed = 1), показываем дополнительные поля
                             if (currentEditObject.completed === 1) {
                                 additionalFields.style.display = 'block';
-                                startDateInput.value = line.start_date;
                                 endDateInput.value = line.end_date;
                                 equipmentInput.value = line.equipment;
                                 equipmentCountInput.value = line.equipment_count;
@@ -512,34 +602,75 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                                 additionalFields.style.display = 'none';
                             }
 
+                            if (currentEditObject.startDate) {
+                                inProgressContainer.style.display = 'none';
+                            } else {
+                                inProgressContainer.style.display = 'block';
+                                inProgressStartDate.style.display = inProgressCheckbox.checked ? 'block' : 'none';
+                                inProgressStartDate.value = '';
+                            }
+
                             editDialog.classList.add('open');
                             document.querySelector('.toolbar-right').style.right = '320px';
 
-                            const bounds = geoObject.geometry.getBounds()
+                            const bounds = geoObject.geometry.getBounds();
                             myMap.setBounds(bounds, {
                                 checkZoomRange: true,
                                 duration: 500
-                            })
+                            });
 
-                            // Устанавливаем выделение объекта на карте
                             if (selectedGeoObject) {
-                                selectedGeoObject.selected = false
-                                selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor)
-                                selectedGeoObject.options.set('strokeWidth', 3)
+                                selectedGeoObject.selected = false;
+                                selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
+                                selectedGeoObject.options.set('strokeWidth', 3);
                             }
-                            selectedGeoObject = geoObject
-                            geoObject.selected = true
-                            geoObject.originalStrokeColor = line.line_color || '#000000'
-                            geoObject.options.set('strokeColor', '#0078ff')
-                            geoObject.options.set('strokeWidth', 5)
-                        })
+                            selectedGeoObject = geoObject;
+                            geoObject.selected = true;
+                            geoObject.originalStrokeColor = line.line_color || '#000000';
+                            geoObject.options.set('strokeColor', '#0078ff');
+                            geoObject.options.set('strokeWidth', 5);
+                        });
 
-                        myMap.geoObjects.add(geoObject)
-                    })
+                        myMap.geoObjects.add(geoObject);
+                    });
                 } else {
-                    showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message)
+                    showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message);
                 }
-            })
+            });
+    }
+
+    // Функция плавного мигания
+    function startSmoothBlinking(geoObject) {
+        let step = 0;
+        let increasing = true;
+
+        setInterval(() => {
+            // Линейная интерполяция между синим и светло-синим
+            const color = interpolateColor('#0000FF', '#00b6ff', step / 100);
+            geoObject.options.set('strokeColor', color);
+            geoObject.options.set('strokeWidth', 3 + (step / 30)); // Плавное изменение толщины
+
+            // Увеличиваем или уменьшаем step для плавного перехода
+            if (increasing) {
+                step += 5;
+                if (step >= 100) increasing = false;
+            } else {
+                step -= 5;
+                if (step <= 0) increasing = true;
+            }
+        }, 50); // Плавность анимации увеличивается с частотой обновления
+    }
+
+    // Функция интерполяции цвета
+    function interpolateColor(color1, color2, factor) {
+        var result = "#";
+        for (var i = 1; i < 6; i += 2) {
+            var hex1 = parseInt(color1.substr(i, 2), 16);
+            var hex2 = parseInt(color2.substr(i, 2), 16);
+            var hex = Math.round(hex1 + factor * (hex2 - hex1)).toString(16);
+            result += ("0" + hex).substr(-2);
+        }
+        return result;
     }
 
     function showMessageModal(message) {
@@ -560,24 +691,122 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     function getLineColor(workType) {
         switch (workType) {
             case 'Гос. задание':
-                return '#FF0000' // Красный
+                return '#FF0000'
             case 'Коммерция':
-                return '#CE31FF' // Фиолетовый
+                return '#CE31FF'
             default:
-                return '#000000' // Черный по умолчанию
+                return '#000000'
         }
     }
 
     function resetEditDialog() {
-        // Сбрасываем все поля редактирования
-        editCommentInput.value = '';
-        completedCheckbox.checked = false;
-        additionalFields.style.display = 'none';
-        startDateInput.value = '';
-        endDateInput.value = '';
-        equipmentInput.value = '';
-        equipmentCountInput.value = '';
+        if (editCommentInput) editCommentInput.value = '';
+        if (completedCheckbox) completedCheckbox.checked = false;
+        if (inProgressStartDate) inProgressStartDate.checked = false;
+        if (additionalFields) additionalFields.style.display = 'none';
+        if (endDateInput) endDateInput.value = '';
+        if (equipmentInput) equipmentInput.value = '';
+        if (equipmentCountInput) equipmentCountInput.value = '';
     }
+
+    // Открытие модального окна для загрузки фото
+    openUploadModalButton.onclick = function () {
+        const uploadPhotoModal = new bootstrap.Modal(document.getElementById('uploadPhotoModal'));
+        uploadPhotoModal.show(); // Показ модального окна
+    };
+
+    // Обработка загрузки фотографии
+    uploadPhotoButton.onclick = function () {
+        if (photoInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('photo', photoInput.files[0]);
+
+            if (currentEditObject && currentEditObject.id) {
+                formData.append('objectId', currentEditObject.id);
+            } else {
+                showMessageModal('Ошибка: не выбран объект для привязки фото.');
+                return;
+            }
+
+            fetch('/upload-photo', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessageModal('Фото успешно загружено и привязано к объекту.');
+
+                        // Перезагружаем линии, чтобы отобразить все обновления
+                        loadLines('');
+
+                        // Сбрасываем состояние редактирования, как в saveEditButton
+                        resetEditDialog();
+                        editDialog.classList.remove('open');
+                        document.querySelector('.toolbar-right').style.right = '10px';
+
+                        if (selectedGeoObject) {
+                            selectedGeoObject.selected = false;
+                            selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
+                            selectedGeoObject.options.set('strokeWidth', 3);
+                            selectedGeoObject = null;
+                        }
+
+                        // Закрываем модальное окно загрузки фото
+                        const uploadPhotoModal = bootstrap.Modal.getInstance(document.getElementById('uploadPhotoModal'));
+                        uploadPhotoModal.hide();
+                    } else {
+                        showMessageModal('Ошибка загрузки фото: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки фото:', error);
+                    showMessageModal('Ошибка при загрузке фото.');
+                });
+        } else {
+            showMessageModal('Пожалуйста, выберите файл перед загрузкой.');
+        }
+    };
+
+    deletePhotoButton.onclick = function () {
+        if (currentEditObject && currentEditObject.id) {
+            fetch('/delete-photo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({objectId: currentEditObject.id})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessageModal('Фото успешно удалено.');
+
+                        // Перезагружаем линии и обновляем интерфейс
+                        loadLines('');
+                        resetEditDialog();
+                        editDialog.classList.remove('open');
+                        document.querySelector('.toolbar-right').style.right = '10px';
+
+                        if (selectedGeoObject) {
+                            selectedGeoObject.selected = false;
+                            selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
+                            selectedGeoObject.options.set('strokeWidth', 3);
+                            selectedGeoObject = null;
+                        }
+                    } else {
+                        showMessageModal('Ошибка при удалении фото: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при удалении фото:', error);
+                    showMessageModal('Ошибка при удалении фото.');
+                });
+        } else {
+            showMessageModal('Ошибка: объект для удаления фото не выбран.');
+        }
+        customBalloon.style.display = 'none';
+    };
 
 
 }).catch(console.error)

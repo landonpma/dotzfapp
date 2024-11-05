@@ -75,3 +75,24 @@
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для загрузки фото -->
+<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-labelledby="uploadPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadPhotoModalLabel">Загрузить фото</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="file" id="photoInput" accept="image/*">
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="uploadPhotoButton" class="btn btn-success">Загрузить</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

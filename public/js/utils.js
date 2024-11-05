@@ -55,3 +55,4 @@ document.getElementById('startTutorial').addEventListener('click', function() {
 
     intro.start();
 });
+

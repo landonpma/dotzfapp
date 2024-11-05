@@ -552,3 +552,30 @@ body, html, .main {
 .form-group label {
 	font-weight: bold;
 }
+
+.custom-select-wrapper-map-type {
+	position: fixed; /* Фиксированное позиционирование относительно окна браузера */
+	top: 80px; /* Отступ от нижнего края окна */
+	right: 10px; /* Отступ от правого края окна */
+	border-radius: 20px;
+	z-index: 1001;
+}
+
+.custom-select-map-type {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 25px; /* Скругленные углы */
+	background-color: #FFFFFF; /* Белый фон */
+	color: #000000; /* Черный текст */
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.custom-select-map-type:hover{
+	background-color: #0078ff; /* Синий фон при наведении и фокусе */
+	color: #FFFFFF; /* Белый текст при наведении и фокусе */
+}
