@@ -17,10 +17,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' })); // Увеличение лимита до 50MB для JSON
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // Увеличение лимита до 50MB для URL-encoded данных
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/src', express.static(path.join(__dirname, 'src')));
+app.use('/geojson', express.static(path.join(__dirname, 'geojson')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     secret: 'your_secret_key', resave: false, saveUninitialized: true, cookie: { secure: false }
@@ -31,7 +32,7 @@ db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT,
+          username TEXT UNIQUE,
           email TEXT UNIQUE,
           password TEXT
         )
@@ -70,6 +71,19 @@ db.serialize(() => {
           in_progress BOOLEAN DEFAULT 0,
           photo TEXT,
           FOREIGN KEY(username) REFERENCES users(username)
+        )
+    `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS appeals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            num TEXT,
+            date TEXT,
+            card_number TEXT,
+            settlement TEXT,
+            address TEXT,
+            topic TEXT,
+            measures TEXT,
+            status TEXT
         )
     `);
 });
@@ -427,6 +441,96 @@ app.post('/delete-photo', (req, res) => {
         }
     });
 });
+
+app.post('/save-table-data', (req, res) => {
+    const { data } = req.body;
+
+    const stmt = db.prepare('INSERT INTO appeals (num, date, card_number, settlement, address, topic, measures, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    data.forEach(row => {
+        stmt.run(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
+    });
+    stmt.finalize((err) => {
+        if (err) {
+            console.error('Ошибка сохранения данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка сохранения данных' });
+        }
+        res.json({ success: true, message: 'Данные успешно сохранены.' });
+    });
+});
+
+// Маршрут для получения данных из базы при загрузке страницы
+app.get('/get-appeals', (req, res) => {
+    db.all('SELECT * FROM appeals', [], (err, rows) => {
+        if (err) {
+            console.error('Ошибка получения данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка получения данных' });
+        }
+        res.json({ success: true, data: rows });
+    });
+});
+
+
+app.get('/search-appeals', (req, res) => {
+    const query = req.query.query || '';
+    const column = req.query.column || 'num';
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 20;
+    const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'topic', 'measures', 'status'];
+
+    if (!validColumns.includes(column)) {
+        return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' });
+    }
+
+    const sqlQuery = `
+        SELECT * FROM appeals
+        WHERE LOWER(${column}) LIKE LOWER(?) 
+        LIMIT ? OFFSET ?
+    `;
+    const params = [`%${query}%`, limit, offset];
+
+    db.all(sqlQuery, params, (err, rows) => {
+        if (err) {
+            console.error('Ошибка поиска:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка поиска данных' });
+        }
+
+        // Подсчет общего количества строк для поискового запроса
+        const countQuery = `
+            SELECT COUNT(*) as total FROM appeals
+            WHERE LOWER(${column}) LIKE LOWER(?)
+        `;
+        db.get(countQuery, [`%${query}%`], (countErr, countResult) => {
+            if (countErr) {
+                console.error('Ошибка подсчета:', countErr);
+                return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' });
+            }
+
+            res.json({ success: true, data: rows, total: countResult.total });
+        });
+    });
+});
+
+app.get('/get-appeals-part', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const sqlQuery = `
+        SELECT * FROM appeals
+        ORDER BY num DESC
+        LIMIT ? OFFSET ?
+    `;
+
+    db.all(sqlQuery, [limit, offset], (err, rows) => {
+        if (err) {
+            console.error('Ошибка загрузки данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка загрузки данных' });
+        }
+
+        res.json({ success: true, data: rows });
+    });
+});
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

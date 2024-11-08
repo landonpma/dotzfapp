@@ -1,0 +1,30 @@
+/* Стили для полосы прокрутки с классом .custom-scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 10px; /* Ширина полосы прокрутки */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f0f0f0; /* Светло-серый трек */
+    border-radius: 10px; /* Скругленные углы трека */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #0078d4; /* Синий ползунок */
+    border-radius: 10px; /* Скругленные углы ползунка */
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3); /* Тень для ползунка */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #005a9e; /* Темно-синий цвет ползунка при наведении */
+}
+
+/* Удаляем кнопки прокрутки (стрелки) */
+.custom-scrollbar::-webkit-scrollbar-button {
+    display: none; /* Полностью скрываем стрелки */
+}
+
+/* Для Firefox: тонкая полоса прокрутки */
+html.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #0078d4 #f0f0f0; /* Цвет ползунка и трека */
+}

@@ -1,0 +1,98 @@
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem; /* Дополнительное пространство */
+}
+
+.dataTables_scrollBody {
+    overflow: visible; /* Позволяет таблице занимать всю высоту */
+}
+
+#data-table_wrapper {
+    position: relative;
+}
+
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#data-table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse;
+}
+
+/* Заголовки таблицы */
+.table thead th,
+#data-table thead th {
+    position: sticky; /* Фиксирование заголовков при прокрутке */
+    top: 0;
+    background-color: #0078ff; /* Цвет заголовка */
+    color: #fff;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 1rem;
+    z-index: 105; /* Увеличен для перекрытия других элементов */
+}
+
+/* Чередование строк и hover */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f8f9fa;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e2e6ea;
+}
+
+/* Стиль кнопок */
+.btn-custom {
+    background-color: #fff;
+    color: #000000;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-custom:hover {
+    background-color: #0078ff;
+    color: #fff;
+}
+
+#loading-indicator {
+    display: none; /* Скрывать по умолчанию */
+    justify-content: center; /* Центрировать по горизонтали */
+    align-items: center; /* Центрировать по вертикали */
+    position: absolute; /* Фиксировать позицию */
+    top: 50%; /* Центрировать по вертикали */
+    left: 50%; /* Центрировать по горизонтали */
+    transform: translate(-50%, -50%); /* Сместить для точного центрирования */
+    z-index: 1000; /* Поверх всех элементов */
+    background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон */
+    width: 100%; /* Заполнить ширину контейнера */
+    height: 100%; /* Заполнить высоту контейнера */
+}
+
+.modal-body p {
+    margin: 5px 0;
+}
+
+.fixed-table {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 105; /* Поверх других элементов */
+    background-color: #0078ff; /* Цвет заголовка */
+}
+
+.fixed-header th {
+    padding: 1rem;
+    background-color: #0078ff;
+    color: #fff;
+    text-align: center;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ddd;
+}
+
+#search-input {
+    margin-right: 10px;
+    margin-left: 10px;
+}

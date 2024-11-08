@@ -1,0 +1,295 @@
+
+
+.toolbar-left {
+    position: absolute;
+    z-index: 1000;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.toolbar-left button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; /* Скругленные углы */
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.toolbar-left button:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #FFFFFF; /* Белый текст при наведении */
+}
+
+.toolbar-right {
+    position: absolute;
+    z-index: 1000;
+    bottom: 20px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    transition: right 0.3s; /* Добавлен переход для плавного перемещения */
+}
+
+
+/* Стили для кастомного select */
+.custom-select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Добавляет тень под кнопкой */
+}
+
+.custom-select {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; /* Скругленные углы */
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.custom-select:hover,
+.custom-select:focus {
+    background-color: #0078ff; /* Синий фон при наведении и фокусе */
+    color: #FFFFFF; /* Белый текст при наведении и фокусе */
+}
+
+.custom-select-arrow {
+    margin-left: 10px;
+    transition: transform 0.3s;
+}
+
+.custom-select.open .custom-select-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-options {
+    position: absolute;
+    font-weight: bold;
+    margin-bottom: 10px;
+    bottom: 100%; /* Позиционирование вверх */
+    left: 0;
+    right: 0;
+    border-radius: 20px; /* Скругленные углы сверху */
+    background-color: #FFFFFF;
+    color: #000000;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s, opacity 0.3s;
+    z-index: 1000;
+}
+
+.custom-select.open + .custom-options {
+    max-height: 300px;
+    opacity: 1;
+}
+
+.custom-option {
+    padding: 10px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.custom-option input {
+    margin-right: 10px;
+}
+
+.custom-option:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #FFFFFF; /* Белый текст при наведении */
+}
+
+#customBalloon {
+    position: absolute;
+    top: 86px;
+    left: 20px; /* Перемещаем balloon в левый верхний угол */
+    background-color: #0078ff;
+    color: #FFFFFF;
+    padding: 10px 20px 10px 20px;
+    border-radius: 20px;
+    display: none;
+    z-index: 1000;
+}
+
+.btn-outline-success {
+    color: #000;
+    border-color: #000;
+}
+
+.btn-outline-success:hover {
+    color: #fff;
+    background-color: #000;
+    border-color: #000;
+}
+
+/* Основные стили для диалогового окна */
+.edit-dialog {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Изменено на right */
+    width: 300px;
+    height: 100%;
+    background-color: #fff;
+    transition: right 0.3s; /* Изменено на right */
+    z-index: 1000;
+    padding: 20px;
+}
+
+.edit-dialog.open {
+    right: 0;
+}
+
+.edit-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.edit-dialog-header h5 {
+    font-weight: bold;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    cursor: pointer;
+    color: #0078ff; /* Цвет кнопки закрытия */
+    margin-bottom: 12px;
+}
+
+.edit-dialog-content {
+    overflow-y: auto;
+    height: calc(100% - 66px); /* Высота содержимого окна с учетом высоты заголовка */
+}
+
+.form-label {
+    font-weight: bold;
+}
+
+.form-control {
+    border-radius: 10px; /* Скругленные углы для полей ввода */
+}
+
+.btn {
+    border-radius: 25px; /* Скругленные углы */
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.btn-primary {
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #FFFFFF; /* Белый текст при наведении */
+}
+
+.btn-danger {
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #FFFFFF; /* Белый текст при наведении */
+}
+
+/* Убедитесь, что диалоговое окно занимает высоту тега main */
+.edit-dialog {
+    height: calc(100% - 66px); /* За вычетом отступов */
+    top: 66px; /* Отступ сверху для избегания блока header */
+}
+
+/* Основные стили для dropdown menu */
+.dropdown-menu {
+    position: fixed; /* Закрепляем меню на экране */
+    top: 66px; /* Отступ от верхнего края, чтобы меню начиналось сразу под header */
+    right: 0; /* Прижимаем меню к правому краю */
+    width: 160px; /* Устанавливаем ширину меню */
+    background-color: #fff; /* Белый фон */
+    border: none; /* Убираем границу */
+    border-radius: 4px; /* Скругленные углы */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Легкая тень для выделения */
+    z-index: 1500;
+
+}
+
+
+.video-container {
+    border-radius: 30px;
+    margin-left: 20px;
+    margin-right: 20px;
+    overflow: hidden;
+    max-width: 60%;
+    min-width: 300px;
+    height: 60vh;
+    position: relative;
+}
+
+.video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#additionalFields {
+    margin-top: 15px;
+}
+
+#additionalFields .form-group {
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.custom-select-wrapper-map-type {
+    position: relative;
+    display: inline-block;
+    right: 10px; /* Отступ от правого края окна */
+    border-radius: 20px;
+    z-index: 1001;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Добавляет тень под кнопкой */
+}
+
+.custom-select-map-type {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; /* Скругленные углы */
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.custom-select-map-type:hover{
+    background-color: #0078ff; /* Синий фон при наведении и фокусе */
+    color: #FFFFFF; /* Белый текст при наведении и фокусе */
+}
+

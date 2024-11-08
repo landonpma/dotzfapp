@@ -1,0 +1,28 @@
+.decoration-link a {
+    text-decoration: none; /*Убираем стандартное подчёркивание ссылки если оно ещё не убрано*/
+    display: inline-block;
+    color: #0078ff; /*Задаём цвет ссылки*/
+}
+
+.decoration-link a:after {
+    display: block; /*превращаем его в блочный элемент*/
+    content: ""; /*контента в данном блоке не будет поэтому в кавычках ничего не ставим*/
+    height: 2px; /*задаём высоту линии*/
+    width: 0; /*задаём начальную ширину элемента (линии)*/
+    background-color: #0078ff; /*цвет фона элемента*/
+    transition: width 0.3s ease-in-out; /*данное свойство отвечает за плавное изменение ширины. Здесь можно задать время анимации в секундах (в данном случае задано 0.4 секунды)*/
+}
+
+.decoration-link a:hover:after,
+.decoration-link a:focus:after {
+    width: 100%;
+}
+
+.decoration-link a:hover {
+    color: #0078ff;
+}
+
+.decoration-link a.active:after {
+    color: #0078ff;
+    width: 100%; /* Линия под активной ссылкой */
+}
