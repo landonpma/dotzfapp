@@ -46,7 +46,7 @@
             >
                 Очистить
             </button>
-            <button id="toggleMode" class="btn btn-info" style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: none">
+            <button id="toggleMode" class="btn btn-primary" style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: none">
                 Полигон
             </button>
             <button id="startTutorial" class="btn btn-primary" style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: none">
@@ -55,28 +55,9 @@
         </div>
 
         <div class="toolbar-right">
-
             <div class="custom-select-wrapper-map-type">
                 <button id="mapStyleSelector" class="custom-select-map-type">Стандарт</button>
             </div>
-
-            <div class="custom-select-wrapper">
-                <div id="filterWorkType" class="custom-select" tabindex="0">
-                    <span>Категория работ</span>
-                    <span class="custom-select-arrow">&#9662;</span>
-                </div>
-                <div class="custom-options">
-                    <label class="custom-option"
-                    ><input type="checkbox" value="Гос. задание"/>Гос. задание</label
-                    >
-                    <label class="custom-option"
-                    ><input type="checkbox" value="Коммерция"/>Коммерция</label
-                    >
-                    <!-- Добавьте другие необходимые типы работы здесь -->
-                </div>
-            </div>
-
-
         </div>
 
         <div id="map" class="map-container"></div>
@@ -129,7 +110,7 @@
 
 
                     <!-- Кнопка для открытия окна загрузки фото -->
-                    <div class="card p-3 mt-3 border-primary">
+                    <div class="card p-3 mt-3 border">
                         <label class="form-label fw-bold text-center">Приложить фото</label>
 
                         <div class="d-flex gap-2 justify-content-center d-flex">
@@ -170,8 +151,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/opashka-map.js"></script>
-<!--<script src="js/links.js"></script>-->
-<script src="js/map-filter.js"></script>
 <script src="js/utils.js"></script>
 </body>
 </html>

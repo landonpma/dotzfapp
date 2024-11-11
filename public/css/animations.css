@@ -1,5 +1,4 @@
 .decoration-link a {
-    text-decoration: none; /*Убираем стандартное подчёркивание ссылки если оно ещё не убрано*/
     display: inline-block;
     color: #0078ff; /*Задаём цвет ссылки*/
 }

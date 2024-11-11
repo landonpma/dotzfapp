@@ -6,7 +6,10 @@ ymaps.ready(function () {
         center: [55.390000, 37.330000],
         zoom: 10,
         controls: []
+    }, {
+        suppressMapOpenBlock: true
     });
+
     const objectManager = new ymaps.ObjectManager()
 
     $.getJSON('geojson/modified_geojson.geojson')

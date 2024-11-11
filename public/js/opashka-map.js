@@ -110,7 +110,6 @@ ymaps.modules.define('ext.paintOnMap', ['meta', 'util.extend', 'pane.EventsPane'
                 prev = curr
             }
         }
-
         return simplified
     }
 
@@ -129,9 +128,6 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     }, {
         suppressMapOpenBlock: true
     });
-
-
-
 
     // Определите стили карты, проверяя их доступность
     const availableMapStyles = {
@@ -187,7 +183,7 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     var userDrawnObjects = []
 
     var styles = {
-        strokeColor: '#000000', strokeOpacity: 0.7, strokeWidth: 3, fillColor: '#000000', fillOpacity: 0.4
+        strokeColor: '#000000', strokeOpacity: 0.7, strokeWidth: 3, fillColor: '#00000000', fillOpacity: 0.4
     }
 
     const toggleModeButton = document.getElementById('toggleMode')
@@ -196,13 +192,11 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     const saveDrawingButton = document.getElementById('saveDrawing')
     const clearDrawingButton = document.getElementById('clearDrawing')
     const startTutorialButton = document.getElementById('startTutorial')
-    const filterWorkTypeSelect = document.getElementById('filterWorkType')
     const workModalElement = document.getElementById('workModal')
     const saveWorkButton = document.getElementById('saveWork')
     const messageContentElement = document.getElementById('messageContent')
     const messageModalElement = document.getElementById('messageModal')
     const customBalloon = document.getElementById('customBalloon')
-
     const editDialog = document.getElementById('editDialog')
     const closeEditDialogButton = document.getElementById('closeEditDialog')
     const saveEditButton = document.getElementById('saveEdit')
@@ -221,9 +215,10 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     const openUploadModalButton = document.getElementById('openUploadModalButton');
     const uploadPhotoButton = document.getElementById('uploadPhotoButton');
     const photoInput = document.getElementById('photoInput');
-
-
     let currentEditObject = null
+    let objectManager = new ymaps.ObjectManager()
+    let previousBounds = null
+    let selectedGeoObject = null
 
     toggleModeButton.onclick = function () {
         if (drawingMode === 'Polygon') {
@@ -355,6 +350,11 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
 
         customBalloon.style.display = 'none';
 
+        // Возврат к предыдущим границам карты
+        if (previousBounds) {
+            myMap.setBounds(previousBounds, { checkZoomRange: true, duration: 500 });
+        }
+
         resetEditDialog();
     };
 
@@ -479,10 +479,10 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
             }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessageModal('Объект успешно удален.')
                         loadLines('')
                         editDialog.classList.remove('open')
                         document.querySelector('.toolbar-right').style.right = '10px'
+                        showMessageModal('Объект успешно удален.')
                         confirmDeleteModal.hide()
                         if (selectedGeoObject) {
                             selectedGeoObject.selected = false
@@ -495,26 +495,25 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                     }
                 })
         }
-
         customBalloon.style.display = 'none';
     }
 
     function loadLines(filterWorkTypes) {
+        objectManager.removeAll();
+        myMap.geoObjects.removeAll();
+
         fetch(`/get-lines?workTypes=${filterWorkTypes}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const objectManager = new ymaps.ObjectManager()
-
                     $.getJSON('geojson/modified_geojson.geojson')
                         .done(function (geoJson) {
-                            // Устанавливаем стили для полигонов и линий
                             geoJson.features.forEach(function (feature) {
                                 if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
                                     feature.options = {
-                                        fillColor: '#00000000', // Прозрачный фон
-                                        strokeColor: '#007BFF', // Черный контур
-                                        strokeWidth: 0.5,         // Тонкий контур
+                                        fillColor: '#00000000',
+                                        strokeColor: '#007BFF',
+                                        strokeWidth: 0.5,
                                     };
                                 }
                             });
@@ -522,27 +521,23 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                             objectManager.add(geoJson);
                             myMap.geoObjects.add(objectManager);
 
-                            // Отключаем события для ObjectManager и меняем курсор
                             objectManager.objects.options.set({
-                                hasBalloon: false,  // Отключает всплывающие балуны
-                                hasHint: false,     // Отключает подсказки
-                                interactiveZIndex: false, // Предотвращает поднятие Z-индекса
-                                zIndex: 0,           // Устанавливает базовый Z-индекс
-                                cursor: 'default'    // Убирает курсор pointer
+                                hasBalloon: false,
+                                hasHint: false,
+                                interactiveZIndex: false,
+                                zIndex: 0,
+                                cursor: 'default'
                             });
 
                             const bounds = objectManager.getBounds();
                             if (bounds) {
                                 myMap.setBounds(bounds, { checkZoomRange: true });
-                            } else {
-                                console.warn('Bounds не определены. Проверьте корректность данных.');
                             }
                         })
                         .fail(function (jqxhr, textStatus, error) {
                             console.error('Ошибка загрузки GeoJSON:', textStatus, error);
                         });
 
-                    // Добавляем новые линии из базы данных
                     data.lines.forEach(line => {
                         try {
                             const coordinates = JSON.parse(line.coordinates);
@@ -563,91 +558,32 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                                     strokeOpacity: 0.6,
                                     strokeWidth: 2
                                 });
-                            } else {
-                                console.warn(`Неизвестный тип геометрии: ${line.type}`);
-                                return;
                             }
 
+                            // Если статус работы "в процессе", запускаем мигание
                             if (line.in_progress) {
                                 startSmoothBlinking(geoObject);
                             }
 
                             geoObject.events.add('mouseenter', function () {
                                 customBalloon.style.display = 'block';
-                                let content = '';
-
-                                if (line.work_type) content += `<strong>Категория:</strong> ${line.work_type}<br>`;
-                                if (line.work_address) content += `<strong>Адрес работы:</strong> ${line.work_address}<br>`;
-                                if (line.work_volume) content += `<strong>Объем работы:</strong> ${line.work_volume}<br>`;
-                                if (line.distance) content += `<strong>Протяженность:</strong> ${line.distance}<br>`;
-                                if (line.start_date) content += `<strong>Дата начала:</strong> ${line.start_date}<br>`;
-                                if (line.end_date) content += `<strong>Дата окончания:</strong> ${line.end_date}<br>`;
-                                if (line.equipment) content += `<strong>Техника:</strong> ${line.equipment}<br>`;
-                                if (line.equipment_count) content += `<strong>Кол-во техники:</strong> ${line.equipment_count}<br>`;
-                                if (line.comment) content += `<strong>Комментарий:</strong> ${line.comment}<br>`;
-                                if (line.photo) content += `<img src="${line.photo}" alt="Фото объекта" style="max-width: 500px; max-height: 50vh; margin-bottom: 10px; margin-top: 10px; border-radius: 20px;"><br>`;
-
-                                customBalloon.innerHTML = content;
+                                customBalloon.innerHTML = createBalloonContent(line);
 
                                 geoObject.options.set('strokeColor', '#0078ff');
                                 geoObject.options.set('strokeWidth', 5);
                             });
 
                             geoObject.events.add('mouseleave', function () {
-                                customBalloon.style.display = 'none';
-                                geoObject.options.set('strokeColor', strokeColor);
-                                geoObject.options.set('strokeWidth', 2);
+                                if (geoObject !== selectedGeoObject) { // Не сбрасывать стиль, если объект выбран
+                                    customBalloon.style.display = 'none';
+                                    geoObject.options.set('strokeColor', strokeColor);
+                                    geoObject.options.set('strokeWidth', 2);
+                                }
                             });
 
                             geoObject.events.add('click', function () {
-                                currentEditObject = {
-                                    id: line.id,
-                                    workType: line.work_type,
-                                    comment: line.comment,
-                                    coordinates: line.coordinates,
-                                    lineColor: strokeColor,
-                                    type: line.type,
-                                    completed: line.completed,
-                                    inProgress: line.in_progress,
-                                    startDate: line.start_date || null
-                                };
-
-                                editCommentInput.value = line.comment;
-                                completedCheckbox.checked = currentEditObject.completed === 1;
-
-                                if (currentEditObject.completed === 1) {
-                                    additionalFields.style.display = 'block';
-                                    endDateInput.value = line.end_date;
-                                    equipmentInput.value = line.equipment;
-                                    equipmentCountInput.value = line.equipment_count;
-                                } else {
-                                    additionalFields.style.display = 'none';
-                                }
-
-                                if (currentEditObject.startDate) {
-                                    inProgressContainer.style.display = 'none';
-                                } else {
-                                    inProgressContainer.style.display = 'block';
-                                    inProgressStartDate.style.display = inProgressCheckbox.checked ? 'block' : 'none';
-                                    inProgressStartDate.value = '';
-                                }
-
-                                editDialog.classList.add('open');
-                                document.querySelector('.toolbar-right').style.right = '320px';
-
-                                const bounds = geoObject.geometry.getBounds();
-                                myMap.setBounds(bounds, { checkZoomRange: true, duration: 500 });
-
-                                if (selectedGeoObject) {
-                                    selectedGeoObject.selected = false;
-                                    selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
-                                    selectedGeoObject.options.set('strokeWidth', 2);
-                                }
-                                selectedGeoObject = geoObject;
-                                geoObject.selected = true;
-                                geoObject.originalStrokeColor = line.line_color || '#000000';
-                                geoObject.options.set('strokeColor', '#0078ff');
-                                geoObject.options.set('strokeWidth', 5);
+                                handleEditDialog(line, geoObject);
+                                focusOnGeoObject(geoObject); // Фокусировка на объекте
                             });
 
                             myMap.geoObjects.add(geoObject);
@@ -658,9 +594,105 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
                 } else {
                     showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке линий:', error);
             });
-
     }
+
+// Функция для создания содержимого Custom Balloon
+    function createBalloonContent(line) {
+        let content = '';
+
+        if (line.work_type) content += `<strong>Категория:</strong> ${line.work_type}<br>`;
+        if (line.work_address) content += `<strong>Адрес работы:</strong> ${line.work_address}<br>`;
+        if (line.work_volume) content += `<strong>Объем работы:</strong> ${line.work_volume}<br>`;
+        if (line.distance) content += `<strong>Протяженность:</strong> ${line.distance}<br>`;
+        if (line.start_date) content += `<strong>Дата начала:</strong> ${line.start_date}<br>`;
+        if (line.end_date) content += `<strong>Дата окончания:</strong> ${line.end_date}<br>`;
+        if (line.equipment) content += `<strong>Техника:</strong> ${line.equipment}<br>`;
+        if (line.equipment_count) content += `<strong>Кол-во техники:</strong> ${line.equipment_count}<br>`;
+        if (line.comment) content += `<strong>Комментарий:</strong> ${line.comment}<br>`;
+        if (line.photo) content += `<img src="${line.photo}" alt="Фото объекта" style="max-width: 500px; max-height: 50vh; margin-bottom: 10px; margin-top: 10px; border-radius: 20px;"><br>`;
+
+        return content;
+    }
+
+// Функция для обработки диалога редактирования
+    function handleEditDialog(line, geoObject) {
+        currentEditObject = {
+            id: line.id,
+            workType: line.work_type,
+            comment: line.comment,
+            coordinates: line.coordinates,
+            lineColor: line.line_color,
+            type: line.type,
+            completed: line.completed,
+            inProgress: line.in_progress,
+            startDate: line.start_date || null
+        };
+
+        editCommentInput.value = line.comment;
+        completedCheckbox.checked = currentEditObject.completed === 1;
+
+        if (currentEditObject.completed === 1) {
+            additionalFields.style.display = 'block';
+            endDateInput.value = line.end_date;
+            equipmentInput.value = line.equipment;
+            equipmentCountInput.value = line.equipment_count;
+        } else {
+            additionalFields.style.display = 'none';
+        }
+
+        editDialog.classList.add('open');
+        document.querySelector('.toolbar-right').style.right = '320px';
+
+        if (selectedGeoObject) {
+            selectedGeoObject.selected = false;
+            selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
+            selectedGeoObject.options.set('strokeWidth', 2);
+        }
+
+        selectedGeoObject = geoObject;
+        geoObject.selected = true;
+        geoObject.originalStrokeColor = line.line_color || '#000000';
+        geoObject.options.set('strokeColor', '#0078ff');
+        geoObject.options.set('strokeWidth', 5);
+        customBalloon.style.display = 'block';
+        customBalloon.innerHTML = createBalloonContent(line);
+    }
+
+    // Функция для фокусировки на объекте
+    function focusOnGeoObject(geoObject) {
+        previousBounds = myMap.getBounds(); // Сохранение текущих границ карты
+        const bounds = geoObject.geometry.getBounds();
+        if (bounds) {
+            myMap.setBounds(bounds, { checkZoomRange: true, duration: 500 });
+        } else {
+            console.warn('Не удалось определить границы объекта для фокусировки.');
+        }
+    }
+
+    // Закрытие диалогового окна и возврат к предыдущему масштабу
+    closeEditDialogButton.onclick = function () {
+        editDialog.classList.remove('open');
+        document.querySelector('.toolbar-right').style.right = '10px';
+
+        if (selectedGeoObject) {
+            selectedGeoObject.selected = false;
+            selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
+            selectedGeoObject.options.set('strokeWidth', 2);
+            selectedGeoObject = null;
+        }
+
+        customBalloon.style.display = 'none';
+
+        // Возврат к предыдущим границам карты
+        if (previousBounds) {
+            myMap.setBounds(previousBounds, { checkZoomRange: true, duration: 500 });
+        }
+    };
+
 
     // Функция плавного мигания
     function startSmoothBlinking(geoObject) {
@@ -703,13 +735,6 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     }
 
     loadLines('')
-
-    filterWorkTypeSelect.addEventListener('change', function () {
-        const selectedValues = Array.from(document.querySelectorAll('.custom-option input:checked'))
-            .map(checkbox => checkbox.value)
-
-        loadLines(selectedValues.length ? selectedValues.join(',') : '')
-    })
 
     function getLineColor(workType) {
         switch (workType) {

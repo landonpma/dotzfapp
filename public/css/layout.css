@@ -35,17 +35,7 @@ header {
 .header-section {
     background-color: #fff; /* Пример цвета фона */
     border-bottom: 1px solid #ddd; /* Граница под шапкой */
-    z-index: -1000;
-}
-
-
-.navbar-nav .nav-link {
-    font-weight: 500;
-    color: #000;
-}
-
-.navbar-nav .nav-link:hover {
-    color: #0078ff;
+    z-index: 1500;
 }
 
 .navbar-brand img {
@@ -56,9 +46,10 @@ header {
     font-weight: bold; /* Полужирный текст */
     padding: 10px 15px; /* Отступы */
     transition: color 0.3s; /* Плавный переход цвета */
+    color: #000;
 }
 
-.navbar-nav .nav-link:hover {
+.nav-link:hover {
     color: #007BFF; /* Цвет текста при наведении */
 }
 

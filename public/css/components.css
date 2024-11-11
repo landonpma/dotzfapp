@@ -1,5 +1,3 @@
-
-
 .toolbar-left {
     position: absolute;
     z-index: 1000;
@@ -38,82 +36,6 @@
 }
 
 
-/* Стили для кастомного select */
-.custom-select-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 200px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Добавляет тень под кнопкой */
-}
-
-.custom-select {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 25px; /* Скругленные углы */
-    background-color: #FFFFFF; /* Белый фон */
-    color: #000000; /* Черный текст */
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
-}
-
-.custom-select:hover,
-.custom-select:focus {
-    background-color: #0078ff; /* Синий фон при наведении и фокусе */
-    color: #FFFFFF; /* Белый текст при наведении и фокусе */
-}
-
-.custom-select-arrow {
-    margin-left: 10px;
-    transition: transform 0.3s;
-}
-
-.custom-select.open .custom-select-arrow {
-    transform: rotate(180deg);
-}
-
-.custom-options {
-    position: absolute;
-    font-weight: bold;
-    margin-bottom: 10px;
-    bottom: 100%; /* Позиционирование вверх */
-    left: 0;
-    right: 0;
-    border-radius: 20px; /* Скругленные углы сверху */
-    background-color: #FFFFFF;
-    color: #000000;
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transition: max-height 0.3s, opacity 0.3s;
-    z-index: 1000;
-}
-
-.custom-select.open + .custom-options {
-    max-height: 300px;
-    opacity: 1;
-}
-
-.custom-option {
-    padding: 10px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
-}
-
-.custom-option input {
-    margin-right: 10px;
-}
-
-.custom-option:hover {
-    background-color: #0078ff; /* Синий фон при наведении */
-    color: #FFFFFF; /* Белый текст при наведении */
-}
-
 #customBalloon {
     position: absolute;
     top: 86px;
@@ -124,17 +46,6 @@
     border-radius: 20px;
     display: none;
     z-index: 1000;
-}
-
-.btn-outline-success {
-    color: #000;
-    border-color: #000;
-}
-
-.btn-outline-success:hover {
-    color: #fff;
-    background-color: #000;
-    border-color: #000;
 }
 
 /* Основные стили для диалогового окна */

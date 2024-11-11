@@ -1,6 +1,6 @@
 /* Стили для полосы прокрутки с классом .custom-scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 10px; /* Ширина полосы прокрутки */
+    width: 5px; /* Ширина полосы прокрутки */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -10,8 +10,8 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #0078d4; /* Синий ползунок */
-    border-radius: 10px; /* Скругленные углы ползунка */
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3); /* Тень для ползунка */
+    border-radius: 20px; /* Скругленные углы ползунка */
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3); /* Тень для ползунка */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
