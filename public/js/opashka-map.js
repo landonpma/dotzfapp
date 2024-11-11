@@ -1,124 +1,5 @@
-ymaps.modules.define('ext.paintOnMap', ['meta', 'util.extend', 'pane.EventsPane', 'Event'], function (provide, meta, extend, EventsPane, Event) {
-    'use strict'
-
-    var EVENTS_PANE_ZINDEX = 500
-    var DEFAULT_UNWANTED_BEHAVIORS = ['drag', 'scrollZoom']
-    var DEFAULT_STYLE = {strokeColor: '#000000', strokeWidth: 1, strokeOpacity: 1}
-    var DEFAULT_TOLERANCE = 16
-
-    var badFinishPaintingCall = function () {
-        throw new Error('(ymaps.ext.paintOnMap) некорректный вызов PaintingProcess#finishPaintingAt. Рисование уже завершено.')
-    }
-
-    function paintOnMap(map, positionOrEvent, config) {
-        config = config || {}
-        var style = extend(DEFAULT_STYLE, config.style || {})
-
-        var unwantedBehaviors = config.unwantedBehaviors === undefined ? DEFAULT_UNWANTED_BEHAVIORS : config.unwantedBehaviors
-
-        var pane = new EventsPane(map, {
-            css: {position: 'absolute', width: '100%', height: '100%'},
-            zIndex: EVENTS_PANE_ZINDEX + 50,
-            transparent: true
-        })
-
-        map.panes.append('ext-paint-on-map', pane)
-
-        if (unwantedBehaviors) {
-            map.behaviors.disable(unwantedBehaviors)
-        }
-
-        var canvas = document.createElement('canvas')
-        var ctx2d = canvas.getContext('2d')
-        var rect = map.container.getParentElement().getBoundingClientRect()
-        canvas.width = rect.width
-        canvas.height = rect.height
-
-        ctx2d.globalAlpha = style.strokeOpacity
-        ctx2d.strokeStyle = style.strokeColor
-        ctx2d.lineWidth = style.strokeWidth
-
-        canvas.style.width = '100%'
-        canvas.style.height = '100%'
-
-        pane.getElement().appendChild(canvas)
-
-        var firstPosition = positionOrEvent ? toPosition(positionOrEvent) : null
-        var coordinates = firstPosition ? [firstPosition] : []
-
-        var bounds = map.getBounds()
-        var latDiff = bounds[1][0] - bounds[0][0]
-        var lonDiff = bounds[1][1] - bounds[0][1]
-
-        canvas.onmousemove = function (e) {
-            coordinates.push([e.offsetX, e.offsetY])
-
-            ctx2d.clearRect(0, 0, canvas.width, canvas.height)
-            ctx2d.beginPath()
-
-            ctx2d.moveTo(coordinates[0][0], coordinates[0][1])
-            for (var i = 1; i < coordinates.length; i++) {
-                ctx2d.lineTo(coordinates[i][0], coordinates[i][1])
-            }
-
-            ctx2d.stroke()
-        }.bind(this)
-
-        var paintingProcess = {
-            finishPaintingAt: function (positionOrEvent) {
-                paintingProcess.finishPaintingAt = badFinishPaintingCall
-
-                if (positionOrEvent) {
-                    coordinates.push(toPosition(positionOrEvent))
-                }
-
-                map.panes.remove(pane)
-                if (unwantedBehaviors) {
-                    map.behaviors.enable(unwantedBehaviors)
-                }
-
-                var tolerance = config.tolerance === undefined ? DEFAULT_TOLERANCE : Number(config.tolerance)
-                if (tolerance) {
-                    coordinates = simplify(coordinates, tolerance)
-                }
-
-                return coordinates.map(function (x) {
-                    var lon = bounds[0][1] + (x[0] / canvas.width) * lonDiff
-                    var lat = bounds[0][0] + (1 - x[1] / canvas.height) * latDiff
-
-                    return meta.coordinatesOrder === 'latlong' ? [lat, lon] : [lon, lat]
-                })
-            }
-        }
-
-        return paintingProcess
-    }
-
-    function toPosition(positionOrEvent) {
-        return positionOrEvent instanceof Event ? [positionOrEvent.get('offsetX'), positionOrEvent.get('offsetY')] : positionOrEvent
-    }
-
-    function simplify(coordinates, tolerance) {
-        var toleranceSquared = tolerance * tolerance
-        var simplified = [coordinates[0]]
-
-        var prev = coordinates[0]
-        for (var i = 1; i < coordinates.length; i++) {
-            var curr = coordinates[i]
-            if (Math.pow(prev[0] - curr[0], 2) + Math.pow(prev[1] - curr[1], 2) > toleranceSquared) {
-                simplified.push(curr)
-                prev = curr
-            }
-        }
-        return simplified
-    }
-
-    provide(paintOnMap)
-})
-
 let myMap
-let selectedGeoObject = null
-let isHybrid = false;
+
 
 ymaps.ready(['ext.paintOnMap']).then(function () {
     myMap = new ymaps.Map('map', {
@@ -129,51 +10,8 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
         suppressMapOpenBlock: true
     });
 
-    // Определите стили карты, проверяя их доступность
-    const availableMapStyles = {
-        standard: 'yandex#map',
-        hybrid: 'yandex#hybrid'
-    };
-
-    // Фильтруем только доступные стили
-    const mapStyles = Object.fromEntries(Object.entries(availableMapStyles).filter(([, value]) => value));
-
-    const styleSelector = document.getElementById('mapStyleSelector');
-    styleSelector.addEventListener('change', function () {
-        const selectedStyle = styleSelector.value;
-        if (myMap && mapStyles[selectedStyle]) {
-            try {
-                myMap.setType(mapStyles[selectedStyle]);
-            } catch (error) {
-                console.error("Ошибка при установке типа карты:", error);
-                alert("Этот тип карты не поддерживается.");
-                styleSelector.value = "standard"; // Вернуть на стандартный тип в случае ошибки
-                myMap.setType(mapStyles["standard"]);
-            }
-        } else {
-            console.error("Карта не инициализирована или выбранный тип карты недопустим");
-        }
-    });
-
-    const mapStyleButton = document.getElementById('mapStyleSelector');
-    mapStyleButton.innerText = 'Стандарт'; // Начальное состояние кнопки
-
-    // Обработчик для переключения стиля карты
-    mapStyleButton.addEventListener('click', function () {
-        isHybrid = !isHybrid; // Переключаем состояние
-        const selectedStyle = isHybrid ? availableMapStyles.hybrid : availableMapStyles.standard;
-
-        // Меняем стиль карты и текст кнопки
-        try {
-            myMap.setType(selectedStyle);
-            mapStyleButton.innerText = isHybrid ? 'Гибрид' : 'Стандарт';
-        } catch (error) {
-            console.error("Ошибка при установке стиля карты:", error);
-            alert("Этот стиль карты не поддерживается.");
-            isHybrid = false;
-            myMap.setType(availableMapStyles.standard);
-            mapStyleButton.innerText = 'Стандарт';
-        }
+    ymaps.modules.require(['ext.mapStyleManager'], function (initMapStyleManager) {
+        initMapStyleManager(myMap);
     });
 
     var paintProcess
@@ -181,6 +19,8 @@ ymaps.ready(['ext.paintOnMap']).then(function () {
     var drawingMode = 'Polygon'
     var objects = []
     var userDrawnObjects = []
+
+
 
     var styles = {
         strokeColor: '#000000', strokeOpacity: 0.7, strokeWidth: 3, fillColor: '#00000000', fillOpacity: 0.4

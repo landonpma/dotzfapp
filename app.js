@@ -1,14 +1,17 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcryptjs');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const session = require('express-session');
-const moment = require('moment');
-const cors = require('cors');
-const multer = require('multer');
-const fs = require('fs');
+import express from 'express';
+import bodyParser from 'body-parser';
+import bcrypt from 'bcryptjs';
+import sqlite3 from 'sqlite3';
+import path from 'path';
+import session from 'express-session';
+import moment from 'moment';
+import cors from 'cors';
+import multer from 'multer';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const db = new sqlite3.Database('./sqlite.db');
