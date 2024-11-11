@@ -49,3 +49,5 @@ ymaps.modules.define('ext.mapStyleManager', [], function (provide) {
 
     provide(initMapStyleManager);
 });
+
+

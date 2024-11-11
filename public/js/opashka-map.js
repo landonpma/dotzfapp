@@ -1,6 +1,5 @@
 let myMap
 
-
 ymaps.ready(['ext.paintOnMap']).then(function () {
     myMap = new ymaps.Map('map', {
         center: [55.39, 37.33],
