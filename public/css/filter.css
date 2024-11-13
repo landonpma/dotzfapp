@@ -1,0 +1,92 @@
+.filter-menu {
+    position: relative;
+}
+
+.filter-content {
+    position: absolute;
+    right: 0; /* Привязываем правый край меню к кнопке */
+    bottom: calc(100% + 10px);
+    width: 260px; /* Ширина меню */
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 30px 30px 20px 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    z-index: 1000;
+    display: none; /* Скрыто по умолчанию */
+    font-weight: bold;
+}
+
+.custom-checkbox-wrapper {
+    margin-bottom: 10px;
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    display: none; /* Скрыть стандартный чекбокс */
+}
+
+.custom-checkbox-box {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #333;
+    background-color: #fff;
+    margin-right: 10px;
+    display: inline-block;
+    border-radius: 3px;
+    position: relative;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .custom-checkbox-box {
+    background-color: #0078ff;
+    border-color: #0078ff;
+}
+
+.custom-checkbox-box::after {
+    content: '';
+    width: 8px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%) rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .custom-checkbox-box::after {
+    opacity: 1;
+}
+
+.custom-checkbox small {
+    color: gray;
+    margin-left: 5px;
+}
+
+/* Стили для кнопки раскрытия */
+#toggleFilterMenu {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px; /* Скругленные углы */
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Тень под кнопкой */
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+#toggleFilterMenu:hover {
+    background-color: #0078ff; /* Серый фон при наведении */
+    color: #ffffff;
+}

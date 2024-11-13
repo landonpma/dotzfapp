@@ -33,6 +33,8 @@
     align-items: center;
     padding: 10px;
     transition: right 0.3s; /* Добавлен переход для плавного перемещения */
+    justify-content: flex-end; /* Выравниваем элементы вправо */
+    gap: 10px; /* Расстояние между кнопками */
 }
 
 
@@ -178,8 +180,7 @@
 
 .custom-select-wrapper-map-type {
     position: relative;
-    display: inline-block;
-    right: 10px; /* Отступ от правого края окна */
+    display: flex;
     border-radius: 20px;
     z-index: 1001;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Добавляет тень под кнопкой */

@@ -8,7 +8,7 @@ import moment from 'moment';
 import cors from 'cors';
 import multer from 'multer';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,14 +20,14 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' })); // Увеличение лимита до 50MB для JSON
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // Увеличение лимита до 50MB для URL-encoded данных
+app.use(bodyParser.json({limit: '50mb'})); // Увеличение лимита до 50MB для JSON
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true})); // Увеличение лимита до 50MB для URL-encoded данных
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 app.use('/geojson', express.static(path.join(__dirname, 'geojson')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-    secret: 'your_secret_key', resave: false, saveUninitialized: true, cookie: { secure: false }
+    secret: 'your_secret_key', resave: false, saveUninitialized: true, cookie: {secure: false}
 }));
 
 
@@ -124,17 +124,17 @@ function checkAuth(req, res, next) {
         db.get('SELECT * FROM sessions WHERE session_id = ? AND expires_at > ?', [sessionId, moment().format('YYYY-MM-DD HH:mm:ss')], (err, row) => {
             if (err) {
                 console.error('Ошибка проверки сессии:', err);
-                req.session.message = { type: 'danger', text: 'Ошибка проверки сессии: ' + err.message };
+                req.session.message = {type: 'danger', text: 'Ошибка проверки сессии: ' + err.message};
                 res.redirect('/login');
             } else if (!row) {
-                req.session.message = { type: 'danger', text: 'Сессия истекла, пожалуйста, войдите снова.' };
+                req.session.message = {type: 'danger', text: 'Сессия истекла, пожалуйста, войдите снова.'};
                 res.redirect('/login');
             } else {
                 next();
             }
         });
     } else {
-        req.session.message = { type: 'danger', text: 'Необходимо авторизоваться для доступа к этой странице' };
+        req.session.message = {type: 'danger', text: 'Необходимо авторизоваться для доступа к этой странице'};
         res.redirect('/login');
     }
 }
@@ -160,37 +160,37 @@ app.get('/', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('dashboard', { username });
+    res.render('dashboard', {username});
 });
 
 app.get('/opashka-map', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('opashka-map', { username });
+    res.render('opashka-map', {username});
 });
 
 app.get('/appeals-map', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('appeals-map', { username });
+    res.render('appeals-map', {username});
 });
 
 app.get('/appeals-journal', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('appeals-journal', { username });
+    res.render('appeals-journal', {username});
 });
 
 app.get('/profile', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('profile', { username });
+    res.render('profile', {username});
 });
 
 app.get('/settings', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('settings', { username });
+    res.render('settings', {username});
 });
 
 app.get('/documents', (req, res) => {
     const username = req.session.user ? req.session.user.username : '';
-    res.render('documents', { username });
+    res.render('documents', {username});
 });
 
 // Логаут пользователя
@@ -207,22 +207,22 @@ app.get('/logout', (req, res) => {
 
 // Регистрация пользователя
 app.post('/register', (req, res) => {
-    const { username, email, password } = req.body;
+    const {username, email, password} = req.body;
     const hashedPassword = bcrypt.hashSync(password, 8);
 
     db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
         if (row) {
-            req.session.message = { type: 'danger', text: 'Пользователь с таким email уже существует.' };
+            req.session.message = {type: 'danger', text: 'Пользователь с таким email уже существует.'};
             return res.redirect('/register');
         }
 
         db.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
             if (err) {
                 console.error('Ошибка регистрации:', err);
-                req.session.message = { type: 'danger', text: 'Ошибка регистрации: ' + err.message };
+                req.session.message = {type: 'danger', text: 'Ошибка регистрации: ' + err.message};
                 return res.redirect('/register');
             }
-            req.session.message = { type: 'success', text: 'Регистрация успешна. Теперь вы можете войти.' };
+            req.session.message = {type: 'success', text: 'Регистрация успешна. Теперь вы можете войти.'};
             res.redirect('/login');
         });
     });
@@ -230,20 +230,20 @@ app.post('/register', (req, res) => {
 
 // Авторизация пользователя
 app.post('/login', (req, res) => {
-    const { identifier, password } = req.body;
+    const {identifier, password} = req.body;
 
     db.get('SELECT * FROM users WHERE email = ? OR username = ?', [identifier, identifier], (err, row) => {
         if (err) {
             console.error('Ошибка авторизации:', err);
-            req.session.message = { type: 'danger', text: 'Ошибка авторизации: ' + err.message };
+            req.session.message = {type: 'danger', text: 'Ошибка авторизации: ' + err.message};
             return res.redirect('/login');
         }
         if (!row) {
-            req.session.message = { type: 'danger', text: 'Неверный email/логин или пароль' };
+            req.session.message = {type: 'danger', text: 'Неверный email/логин или пароль'};
             return res.redirect('/login');
         }
         if (!bcrypt.compareSync(password, row.password)) {
-            req.session.message = { type: 'danger', text: 'Неверный email/логин или пароль' };
+            req.session.message = {type: 'danger', text: 'Неверный email/логин или пароль'};
             return res.redirect('/login');
         }
 
@@ -254,12 +254,12 @@ app.post('/login', (req, res) => {
         db.run('INSERT INTO sessions (user_id, username, session_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?)', [row.id, row.username, sessionId, createdAt, expiresAt], (err) => {
             if (err) {
                 console.error('Ошибка создания сессии:', err);
-                req.session.message = { type: 'danger', text: 'Ошибка создания сессии: ' + err.message };
+                req.session.message = {type: 'danger', text: 'Ошибка создания сессии: ' + err.message};
                 return res.redirect('/login');
             }
 
-            req.session.user = { id: row.id, username: row.username };
-            req.session.message = { type: 'success', text: 'Вход выполнен успешно.' };
+            req.session.user = {id: row.id, username: row.username};
+            req.session.message = {type: 'success', text: 'Вход выполнен успешно.'};
             res.redirect('/dashboard');
         });
     });
@@ -267,7 +267,18 @@ app.post('/login', (req, res) => {
 
 // Сохранение линии
 app.post('/save-line', (req, res) => {
-    const { objects, workType, comment, workAddress, workVolume, startDate, endDate, equipment, equipmentCount, distance } = req.body;
+    const {
+        objects,
+        workType,
+        comment,
+        workAddress,
+        workVolume,
+        startDate,
+        endDate,
+        equipment,
+        equipmentCount,
+        distance
+    } = req.body;
     const username = req.session.user.username;
     const createdAt = moment().format('YYYY-MM-DD HH:mm:ss');
     const lineColor = getLineColor(workType);
@@ -281,15 +292,15 @@ app.post('/save-line', (req, res) => {
     stmt.finalize((err) => {
         if (err) {
             console.error('Ошибка сохранения объектов:', err);
-            return res.json({ success: false, message: 'Ошибка сохранения объектов: ' + err.message });
+            return res.json({success: false, message: 'Ошибка сохранения объектов: ' + err.message});
         }
-        res.json({ success: true, message: 'Объекты успешно сохранены.' });
+        res.json({success: true, message: 'Объекты успешно сохранены.'});
     });
 });
 
 // Получение линий
 app.get('/get-lines', (req, res) => {
-    const { workTypes } = req.query;
+    const { workTypes, district } = req.query;
 
     let query = 'SELECT * FROM lines';
     let params = [];
@@ -299,6 +310,12 @@ app.get('/get-lines', (req, res) => {
         const placeholders = typesArray.map(() => '?').join(',');
         query += ` WHERE work_type IN (${placeholders})`;
         params = typesArray;
+    }
+
+    if (district) {
+        query += params.length ? ' AND' : ' WHERE';
+        query += ' LOWER(work_address) = LOWER(?)';
+        params.push(district);
     }
 
     db.all(query, params, (err, rows) => {
@@ -330,7 +347,7 @@ app.post('/update-line', (req, res) => {
     db.get(`SELECT start_date FROM lines WHERE id = ?`, [id], (err, row) => {
         if (err) {
             console.error('Ошибка получения текущей даты начала:', err);
-            return res.json({ success: false, message: 'Ошибка получения текущей даты начала: ' + err.message });
+            return res.json({success: false, message: 'Ошибка получения текущей даты начала: ' + err.message});
         }
 
         // Если дата начала уже существует, сохраняем её, иначе используем новую дату
@@ -347,16 +364,16 @@ app.post('/update-line', (req, res) => {
         db.run(query, params, function (err) {
             if (err) {
                 console.error('Ошибка обновления объекта:', err);
-                return res.json({ success: false, message: 'Ошибка обновления объекта: ' + err.message });
+                return res.json({success: false, message: 'Ошибка обновления объекта: ' + err.message});
             }
-            res.json({ success: true, message: 'Объект успешно обновлен.' });
+            res.json({success: true, message: 'Объект успешно обновлен.'});
         });
     });
 });
 
 // Удаление линии
 app.post('/delete-line', (req, res) => {
-    const { id } = req.body;
+    const {id} = req.body;
 
     const query = 'DELETE FROM lines WHERE id = ?';
     const params = [id];
@@ -364,9 +381,9 @@ app.post('/delete-line', (req, res) => {
     db.run(query, params, function (err) {
         if (err) {
             console.error('Ошибка удаления объекта:', err);
-            return res.json({ success: false, message: 'Ошибка удаления объекта: ' + err.message });
+            return res.json({success: false, message: 'Ошибка удаления объекта: ' + err.message});
         }
-        res.json({ success: true, message: 'Объект успешно удален.' });
+        res.json({success: true, message: 'Объект успешно удален.'});
     });
 });
 
@@ -385,14 +402,14 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({storage: storage});
 
 // Маршрут для загрузки фотографий
 app.post('/upload-photo', upload.single('photo'), (req, res) => {
-    const { objectId } = req.body;
+    const {objectId} = req.body;
 
     if (!objectId || !req.file) {
-        return res.json({ success: false, message: 'Объект не найден или файл не загружен.' });
+        return res.json({success: false, message: 'Объект не найден или файл не загружен.'});
     }
 
     const photoPath = `/uploads/${req.file.filename}`;  // путь к файлу
@@ -400,24 +417,24 @@ app.post('/upload-photo', upload.single('photo'), (req, res) => {
     db.run('UPDATE lines SET photo = ? WHERE id = ?', [photoPath, objectId], (err) => {
         if (err) {
             console.error('Ошибка при обновлении фото для объекта:', err);
-            return res.json({ success: false, message: 'Ошибка при обновлении фото: ' + err.message });
+            return res.json({success: false, message: 'Ошибка при обновлении фото: ' + err.message});
         }
-        res.json({ success: true, message: 'Фото успешно загружено и привязано к объекту.', photoPath });
+        res.json({success: true, message: 'Фото успешно загружено и привязано к объекту.', photoPath});
     });
 });
 
 app.post('/delete-photo', (req, res) => {
-    const { objectId } = req.body;
+    const {objectId} = req.body;
 
     if (!objectId) {
-        return res.json({ success: false, message: 'Объект не найден.' });
+        return res.json({success: false, message: 'Объект не найден.'});
     }
 
     // Получаем текущий путь к фото из базы данных
     db.get('SELECT photo FROM lines WHERE id = ?', [objectId], (err, row) => {
         if (err) {
             console.error('Ошибка при получении пути к фото:', err);
-            return res.json({ success: false, message: 'Ошибка при получении пути к фото.' });
+            return res.json({success: false, message: 'Ошибка при получении пути к фото.'});
         }
 
         if (row && row.photo) {
@@ -427,26 +444,26 @@ app.post('/delete-photo', (req, res) => {
             fs.unlink(photoPath, (err) => {
                 if (err) {
                     console.error('Ошибка при удалении файла фото:', err);
-                    return res.json({ success: false, message: 'Ошибка при удалении файла фото.' });
+                    return res.json({success: false, message: 'Ошибка при удалении файла фото.'});
                 }
 
                 // Обновляем базу данных, удаляя путь к фото
                 db.run('UPDATE lines SET photo = NULL WHERE id = ?', [objectId], (err) => {
                     if (err) {
                         console.error('Ошибка при обновлении записи в базе данных:', err);
-                        return res.json({ success: false, message: 'Ошибка при обновлении записи в базе данных.' });
+                        return res.json({success: false, message: 'Ошибка при обновлении записи в базе данных.'});
                     }
-                    res.json({ success: true, message: 'Фото успешно удалено.' });
+                    res.json({success: true, message: 'Фото успешно удалено.'});
                 });
             });
         } else {
-            res.json({ success: false, message: 'Фото для удаления не найдено.' });
+            res.json({success: false, message: 'Фото для удаления не найдено.'});
         }
     });
 });
 
 app.post('/save-table-data', (req, res) => {
-    const { data } = req.body;
+    const {data} = req.body;
 
     const stmt = db.prepare('INSERT INTO appeals (num, date, card_number, settlement, address, topic, measures, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     data.forEach(row => {
@@ -455,9 +472,9 @@ app.post('/save-table-data', (req, res) => {
     stmt.finalize((err) => {
         if (err) {
             console.error('Ошибка сохранения данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка сохранения данных' });
+            return res.status(500).json({success: false, message: 'Ошибка сохранения данных'});
         }
-        res.json({ success: true, message: 'Данные успешно сохранены.' });
+        res.json({success: true, message: 'Данные успешно сохранены.'});
     });
 });
 
@@ -466,9 +483,9 @@ app.get('/get-appeals', (req, res) => {
     db.all('SELECT * FROM appeals', [], (err, rows) => {
         if (err) {
             console.error('Ошибка получения данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка получения данных' });
+            return res.status(500).json({success: false, message: 'Ошибка получения данных'});
         }
-        res.json({ success: true, data: rows });
+        res.json({success: true, data: rows});
     });
 });
 
@@ -481,7 +498,7 @@ app.get('/search-appeals', (req, res) => {
     const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'topic', 'measures', 'status'];
 
     if (!validColumns.includes(column)) {
-        return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' });
+        return res.status(400).json({success: false, message: 'Неверный столбец для поиска'});
     }
 
     const sqlQuery = `
@@ -494,7 +511,7 @@ app.get('/search-appeals', (req, res) => {
     db.all(sqlQuery, params, (err, rows) => {
         if (err) {
             console.error('Ошибка поиска:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка поиска данных' });
+            return res.status(500).json({success: false, message: 'Ошибка поиска данных'});
         }
 
         // Подсчет общего количества строк для поискового запроса
@@ -505,10 +522,10 @@ app.get('/search-appeals', (req, res) => {
         db.get(countQuery, [`%${query}%`], (countErr, countResult) => {
             if (countErr) {
                 console.error('Ошибка подсчета:', countErr);
-                return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' });
+                return res.status(500).json({success: false, message: 'Ошибка подсчета данных'});
             }
 
-            res.json({ success: true, data: rows, total: countResult.total });
+            res.json({success: true, data: rows, total: countResult.total});
         });
     });
 });
@@ -526,13 +543,34 @@ app.get('/get-appeals-part', (req, res) => {
     db.all(sqlQuery, [limit, offset], (err, rows) => {
         if (err) {
             console.error('Ошибка загрузки данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка загрузки данных' });
+            return res.status(500).json({success: false, message: 'Ошибка загрузки данных'});
+        }
+
+        res.json({success: true, data: rows});
+    });
+});
+
+
+// Маршрут для фильтрации по району
+app.get('/filter-district', (req, res) => {
+    const { district } = req.query;
+
+    if (!district) {
+        return res.status(400).json({ success: false, message: 'Не указан район для фильтрации' });
+    }
+
+    // Фильтрация данных по work_address без учета регистра
+    const query = `SELECT * FROM lines WHERE LOWER(work_address) = LOWER(?)`;
+
+    db.all(query, [district], (err, rows) => {
+        if (err) {
+            console.error('Ошибка фильтрации данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
         }
 
         res.json({ success: true, data: rows });
     });
 });
-
 
 
 const PORT = process.env.PORT || 3000;
