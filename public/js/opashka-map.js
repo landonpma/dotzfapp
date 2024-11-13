@@ -371,43 +371,11 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 								interactiveZIndex: false,
 								zIndex: 0,
 								cursor: 'default'
-							});
+							})
 						})
 						.fail(function(jqxhr, textStatus, error) {
 							console.error('Ошибка загрузки GeoJSON:', textStatus, error);
 						});
-
-					// Очистка слоя районов, если он уже добавлен
-					if (districtLayer) {
-						myMap.geoObjects.remove(districtLayer);
-					}
-
-					// Если выбран район, фильтруем и отображаем только объекты из этого района
-					if (selectedDistrict) {
-						$.getJSON('/geojson/modified_geojson.geojson')
-							.done(function(geoJson) {
-								const filteredFeatures = geoJson.features.filter(feature =>
-									feature.properties.name.toLowerCase() === selectedDistrict.toLowerCase()
-								);
-
-								districtLayer = new ymaps.ObjectManager({
-									clusterize: false
-								});
-
-								filteredFeatures.forEach(feature => {
-									feature.options = {
-										strokeColor: '#007bff',
-										strokeWidth: 3,
-										fillOpacity: 0.1,
-										fillColor: '#0000FF'
-									};
-									districtLayer.add(feature);
-								});
-
-								myMap.geoObjects.add(districtLayer);
-							})
-							.fail(() => console.error('Ошибка загрузки GeoJSON.'));
-					}
 
 					// Отображение линий, полученных с сервера
 					data.lines.forEach(line => {
@@ -599,6 +567,7 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		return result
 	}
 
+	// Функция отображения модального окна
 	function showMessageModal(message) {
 		messageContentElement.innerText = message
 		var messageModal = new bootstrap.Modal(messageModalElement)
@@ -687,6 +656,7 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		}
 	}
 
+	// Обработка удаления фотографии
 	deletePhotoButton.onclick = function() {
 		if (currentEditObject && currentEditObject.id) {
 			fetch('/delete-photo', {
