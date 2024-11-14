@@ -13,6 +13,10 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		initMapStyleManager(myMap)
 	})
 
+	ymaps.modules.require(['ext.filterByDistricts'], function(filterByDistricts) {
+		filterByDistricts([])
+	})
+
 	var paintProcess
 	var drawing = false
 	var drawingMode = 'Polygon'
@@ -57,7 +61,7 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 	let objectManager = new ymaps.ObjectManager()
 	let previousBounds = null
 	let selectedGeoObject = null
-	let districtLayer = null
+
 
 	toggleModeButton.onclick = function() {
 		if (drawingMode === 'Polygon') {
@@ -350,7 +354,7 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 			.then(data => {
 				if (data.success) {
 					// Загружаем GeoJSON данные для дополнительной отрисовки
-					$.getJSON('geojson/modified_geojson.geojson')
+					$.getJSON('/geojson/new_moscow2024.geojson')
 						.done(function(geoJson) {
 							geoJson.features.forEach(function(feature) {
 								if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
@@ -697,72 +701,6 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		customBalloon.style.display = 'none'
 	}
 
-
-	function filterByDistricts(selectedDistricts) {
-
-		if (districtLayer) {
-			myMap.geoObjects.remove(districtLayer)
-		}
-
-		$.getJSON('/geojson/modified_geojson.geojson')
-			.done(function(geoJson) {
-				const filteredFeatures = geoJson.features.filter(feature =>
-					selectedDistricts.includes(feature.properties.name)
-				)
-
-				districtLayer = new ymaps.ObjectManager({
-					clusterize: false
-				})
-
-				filteredFeatures.forEach(feature => {
-					feature.options = {
-						strokeColor: '#007bff',
-						strokeWidth: 3,
-						fillOpacity: 0.1,
-						fillColor: '#0000FF'
-					}
-					districtLayer.add(feature)
-				})
-
-				myMap.geoObjects.add(districtLayer)
-
-
-			})
-			.fail(() => console.error('Ошибка загрузки GeoJSON.'))
-	}
-
-	// Привязка к чекбоксам
-	document.getElementById('toggleFilterMenu').addEventListener('click', function(event) {
-		const filterContent = document.getElementById('filterContent')
-		filterContent.style.display = filterContent.style.display === 'none' ? 'block' : 'none'
-
-		// Остановить всплытие события, чтобы клик на кнопку не закрывал фильтр
-		event.stopPropagation()
-	})
-
-	document.getElementById('districtCheckboxes').addEventListener('change', function() {
-		const selectedDistricts = Array.from(document.querySelectorAll('#districtCheckboxes input:checked'))
-			.map(checkbox => checkbox.value)
-		filterByDistricts(selectedDistricts)
-	})
-
-	document.getElementById('resetCheckboxes').addEventListener('click', function() {
-		document.querySelectorAll('#districtCheckboxes input[type="checkbox"]').forEach(checkbox => {
-			checkbox.checked = false
-		})
-		filterByDistricts([]) // Очистить фильтрацию
-	})
-
-	// Скрытие фильтра при клике вне его
-	document.addEventListener('click', function(event) {
-		const filterContent = document.getElementById('filterContent')
-		const toggleButton = document.getElementById('toggleFilterMenu')
-
-		// Проверка, был ли клик вне области фильтра и кнопки
-		if (filterContent.style.display === 'block' && !filterContent.contains(event.target) && event.target !== toggleButton) {
-			filterContent.style.display = 'none'
-		}
-	})
 
 }).catch(console.error)
 
