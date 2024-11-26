@@ -1,0 +1,99 @@
+/* Стили для точек на карте */
+.custom-point {
+    background-color: #0078ff;
+    width: 30px; /* Ширина маркера */
+    height: 30px; /* Высота маркера */
+    border-radius: 50%; /* Круг */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Стили для кластеров */
+.custom-cluster {
+    background-color: #ff7b00;
+    transform-origin: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+.custom-cluster-balloon {
+    font-family: 'Arial', sans-serif;
+    max-width: 450px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.custom-cluster-balloon h2 {
+    font-size: 18px;
+    color: #0078ff;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #0078ff;
+    padding-bottom: 5px;
+}
+
+.custom-cluster-balloon .scrollable-content {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.custom-cluster-balloon ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.custom-cluster-balloon li.balloon-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.custom-cluster-balloon li.balloon-item:hover {
+    background-color: #eef5ff;
+    border-color: #0078ff;
+}
+
+.custom-cluster-balloon li p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.custom-cluster-balloon li strong {
+    font-size: 14px;
+    color: #0078ff;
+}
+
+/* Стили для полосы прокрутки */
+.custom-cluster-balloon .scrollable-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.custom-cluster-balloon .scrollable-content::-webkit-scrollbar-thumb {
+    background: #0078ff;
+    border-radius: 5px;
+}
+
+.custom-cluster-balloon .scrollable-content::-webkit-scrollbar-thumb:hover {
+    background: #0056b3;
+}

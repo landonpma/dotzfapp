@@ -1,25 +1,17 @@
-.dataTables_wrapper .dataTables_filter input {
-    margin-left: 0.5rem; /* Дополнительное пространство */
-}
-
-.dataTables_scrollBody {
-    overflow: visible; /* Позволяет таблице занимать всю высоту */
-}
-
-#data-table_wrapper {
+/* Стили для контейнера таблицы */
+#table-container {
+    height: calc(100vh - 148px);
+    overflow-y: auto; /* Вертикальная прокрутка */
     position: relative;
+    background: #fff; /* Белый фон */
 }
 
-.table {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
+/* Стили для таблицы */
 #data-table {
     width: 100%;
-    margin: 20px 0;
     border-collapse: collapse;
 }
+
 
 /* Заголовки таблицы */
 .table thead th,
@@ -28,34 +20,18 @@
     top: 0;
     background-color: #0078ff; /* Цвет заголовка */
     color: #fff;
-    text-transform: uppercase;
     text-align: center;
-    padding: 1rem;
     z-index: 105; /* Увеличен для перекрытия других элементов */
 }
 
-/* Чередование строк и hover */
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: #f8f9fa;
-}
 
+/* Подсветка строки при наведении */
 .table-hover tbody tr:hover {
-    background-color: #e2e6ea;
+    background-color: #e2e6ea; /* Цвет подсветки */
+    cursor: pointer;
 }
 
-/* Стиль кнопок */
-.btn-custom {
-    background-color: #fff;
-    color: #000000;
-    border-radius: 10px;
-    transition: background-color 0.3s ease;
-}
-
-.btn-custom:hover {
-    background-color: #0078ff;
-    color: #fff;
-}
-
+/* Стили индикатора загрузки */
 #loading-indicator {
     display: none; /* Скрывать по умолчанию */
     justify-content: center; /* Центрировать по горизонтали */
@@ -70,29 +46,25 @@
     height: 100%; /* Заполнить высоту контейнера */
 }
 
+/* Стили для текста в модальных окнах */
 .modal-body p {
-    margin: 5px 0;
+    margin: 5px 0; /* Отступы между параграфами */
 }
 
-.fixed-table {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 105; /* Поверх других элементов */
-    background-color: #0078ff; /* Цвет заголовка */
-}
-
-.fixed-header th {
-    padding: 1rem;
-    background-color: #0078ff;
-    color: #fff;
-    text-align: center;
-    text-transform: uppercase;
-    border-bottom: 1px solid #ddd;
-}
-
+/* Стили для строки поиска */
 #search-input {
-    margin-right: 10px;
-    margin-left: 10px;
+    margin-left: 10px; /* Отступ слева */
+}
+
+/* Стили для кнопок */
+.btn-custom {
+    background-color: #f6f6f6; /* Светло-серый фон */
+    color: #000000; /* Черный текст */
+    border-radius: 10px; /* Закругленные углы */
+    transition: background-color 0.3s ease; /* Плавное изменение фона при наведении */
+}
+
+.btn-custom:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #fff; /* Белый текст при наведении */
 }

@@ -79,14 +79,17 @@ db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS appeals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            num TEXT,
-            date TEXT,
+            num INTEGER,
+            date DATE,
             card_number TEXT,
             settlement TEXT,
             address TEXT,
+            coordinates TEXT,
             topic TEXT,
             measures TEXT,
-            status TEXT
+            status TEXT,
+            source TEXT,
+            employee TEXT
         )
     `);
 });
@@ -462,40 +465,191 @@ app.post('/delete-photo', (req, res) => {
     });
 });
 
-app.post('/save-table-data', (req, res) => {
-    const {data} = req.body;
+// Маршрут для фильтрации по району
+app.get('/filter-district', (req, res) => {
+    const { district } = req.query;
 
-    const stmt = db.prepare('INSERT INTO appeals (num, date, card_number, settlement, address, topic, measures, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-    data.forEach(row => {
-        stmt.run(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
+    if (!district) {
+        return res.status(400).json({ success: false, message: 'Не указан район для фильтрации' });
+    }
+
+    // Фильтрация данных по work_address без учета регистра
+    const query = `SELECT * FROM lines WHERE LOWER(work_address) = LOWER(?)`;
+
+    db.all(query, [district], (err, rows) => {
+        if (err) {
+            console.error('Ошибка фильтрации данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
+        }
+
+        res.json({ success: true, data: rows });
     });
+});
+
+// Исправлен маршрут для сохранения данных с проверкой дат и добавлением сортировки
+app.post('/save-table-data', (req, res) => {
+    const { data } = req.body;
+
+    const stmt = db.prepare(`
+        INSERT INTO appeals 
+        (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    data.forEach(row => {
+        const excelDateToJSDate = (excelDate) => {
+            const date = new Date(0);
+            date.setUTCDate(excelDate - 25567);
+            return date.toISOString().split('T')[0];
+        };
+
+        const formattedDate = !isNaN(row[1]) && typeof row[1] === 'number'
+            ? excelDateToJSDate(row[1])
+            : row[1];
+
+        if (formattedDate && row.every(cell => cell !== null && cell !== undefined && cell !== '')) {
+            stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]);
+        }
+    });
+
     stmt.finalize((err) => {
         if (err) {
             console.error('Ошибка сохранения данных:', err);
-            return res.status(500).json({success: false, message: 'Ошибка сохранения данных'});
+            return res.status(500).json({ success: false, message: 'Ошибка сохранения данных' });
         }
-        res.json({success: true, message: 'Данные успешно сохранены.'});
+        res.json({ success: true, message: 'Данные успешно сохранены.' });
     });
 });
 
-// Маршрут для получения данных из базы при загрузке страницы
-app.get('/get-appeals', (req, res) => {
-    db.all('SELECT * FROM appeals', [], (err, rows) => {
+app.get('/get-appeals-part', (req, res) => {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const sqlQuery = `
+        SELECT * FROM appeals
+        ORDER BY CAST(num AS INTEGER) DESC
+        LIMIT ? OFFSET ?
+    `;
+
+    db.all(sqlQuery, [limit, offset], (err, rows) => {
         if (err) {
-            console.error('Ошибка получения данных:', err);
-            return res.status(500).json({success: false, message: 'Ошибка получения данных'});
+            console.error('Ошибка загрузки данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка загрузки данных' });
         }
-        res.json({success: true, data: rows});
+
+        res.json({ success: true, data: rows });
     });
 });
 
+
+app.post('/update-appeal', (req, res) => {
+    const {
+        num,
+        date,
+        card_number,
+        settlement,
+        address,
+        coordinates,
+        topic,
+        measures,
+        status,
+        source,
+        employee,
+    } = req.body;
+
+    const query = `
+        UPDATE appeals
+        SET date = ?, card_number = ?, settlement = ?, address = ?, coordinates = ?, topic = ?, measures = ?, status = ?, source = ?, employee = ?
+        WHERE num = ?
+    `;
+
+    db.run(
+        query,
+        [date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, num],
+        function (err) {
+            if (err) {
+                console.error('Ошибка обновления данных:', err);
+                return res.json({ success: false, message: 'Ошибка обновления данных' });
+            }
+            res.json({ success: true, message: 'Данные успешно обновлены' });
+        }
+    );
+});
+
+app.get('/get-next-appeal-number', (req, res) => {
+    const query = `SELECT MAX(num) AS maxNum FROM appeals`;
+
+    db.get(query, [], (err, row) => {
+        if (err) {
+            console.error('Ошибка получения последнего номера обращения:', err);
+            return res.json({ success: false, message: 'Ошибка получения последнего номера обращения' });
+        }
+
+        const nextNum = row && row.maxNum ? row.maxNum + 1 : 1;
+        res.json({ success: true, nextNum });
+    });
+});
+
+
+app.post('/add-appeal', (req, res) => {
+    const {
+        num,
+        date,
+        card_number,
+        settlement,
+        address,
+        coordinates,
+        topic,
+        measures,
+        status,
+        source,
+        employee,
+    } = req.body;
+
+    const query = `
+        INSERT INTO appeals (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(query, [num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee], function (err) {
+        if (err) {
+            console.error('Ошибка добавления нового обращения:', err);
+            return res.json({ success: false, message: 'Ошибка добавления нового обращения' });
+        }
+
+        res.json({ success: true, message: 'Новое обращение успешно добавлено' });
+    });
+});
+
+app.post('/delete-appeal', (req, res) => {
+    const { num } = req.body;
+
+    if (!num) {
+        return res.status(400).json({ success: false, message: 'Номер обращения отсутствует.' });
+    }
+
+    const query = `DELETE FROM appeals WHERE num = ?`;
+
+    db.run(query, [num], function (err) {
+        if (err) {
+            console.error('Ошибка удаления обращения:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка удаления обращения' });
+        }
+
+        if (this.changes === 0) {
+            return res.status(404).json({ success: false, message: 'Обращение не найдено.' });
+        }
+
+        res.json({ success: true, message: 'Обращение успешно удалено' });
+    });
+});
 
 app.get('/search-appeals', (req, res) => {
     const query = req.query.query || '';
     const column = req.query.column || 'num';
     const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 20;
-    const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'topic', 'measures', 'status'];
+    const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee'];
 
     if (!validColumns.includes(column)) {
         return res.status(400).json({success: false, message: 'Неверный столбец для поиска'});
@@ -530,45 +684,29 @@ app.get('/search-appeals', (req, res) => {
     });
 });
 
-app.get('/get-appeals-part', (req, res) => {
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 20;
 
-    const sqlQuery = `
-        SELECT * FROM appeals
-        ORDER BY num DESC
-        LIMIT ? OFFSET ?
-    `;
+app.get('/get-appeals', (req, res) => {
+    const query = 'SELECT num, date, card_number, coordinates, topic, address, status, source, employee FROM appeals';
 
-    db.all(sqlQuery, [limit, offset], (err, rows) => {
+    db.all(query, [], (err, rows) => {
         if (err) {
-            console.error('Ошибка загрузки данных:', err);
-            return res.status(500).json({success: false, message: 'Ошибка загрузки данных'});
+            console.error('Ошибка получения обращений:', err);
+            return res.json({ success: false, message: 'Ошибка получения обращений' });
         }
 
-        res.json({success: true, data: rows});
-    });
-});
+        const appeals = rows.map(row => ({
+            id: row.num,
+            date: row.date,
+            card_number: row.card_number,
+            coordinates: row.coordinates,
+            topic: row.topic,
+            address: row.address,
+            status: row.status,
+            source: row.source,
+            employee: row.employee
+        }));
 
-
-// Маршрут для фильтрации по району
-app.get('/filter-district', (req, res) => {
-    const { district } = req.query;
-
-    if (!district) {
-        return res.status(400).json({ success: false, message: 'Не указан район для фильтрации' });
-    }
-
-    // Фильтрация данных по work_address без учета регистра
-    const query = `SELECT * FROM lines WHERE LOWER(work_address) = LOWER(?)`;
-
-    db.all(query, [district], (err, rows) => {
-        if (err) {
-            console.error('Ошибка фильтрации данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
-        }
-
-        res.json({ success: true, data: rows });
+        res.json({ success: true, appeals });
     });
 });
 

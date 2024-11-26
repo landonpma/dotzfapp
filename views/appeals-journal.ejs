@@ -19,29 +19,27 @@
 <main>
     <div class="container-fluid">
         <div class="d-flex justify-content-center align-items-center mb-2 mt-3">
-            <div class="dropdown">
-                <button class="btn btn-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Новое обращение
+            <div>
+                <button id="add-button" class="btn btn-custom" type="button">
+                    Добавить
                 </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Мосэдо</a></li>
-                    <li><a class="dropdown-item" href="#">Наш город</a></li>
-                    <li><a class="dropdown-item" href="#">ЦАФАП</a></li>
-                </ul>
             </div>
 
 
-            <input type="text" id="search-input" class="form-control  me-2" placeholder="Поиск..." />
-            <div class="container-sm" style="width: 300px;">
-                <select id="column-select" class="form-select">
-                    <option value="num">Номер</option>
-                    <option value="date">Дата</option>
-                    <option value="card_number">Номер карточки</option>
+            <input type="text" id="search-input" class="form-control" placeholder="Поиск..." />
+            <div class="container-sm" style="max-width: 300px;">
+                <select id="column-select" class="form-control">
+                    <option value="num">№ ДС</option>
+                    <option value="date">Дата обращения</option>
+                    <option value="card_number">№ Карточки обращения</option>
                     <option value="settlement">Поселение</option>
                     <option value="address">Адрес</option>
-                    <option value="topic">Проблемная тема</option>
+                    <option value="coordinates">Координаты</option>
+                    <option value="topic">Тема обращения</option>
                     <option value="measures">Принятые меры</option>
                     <option value="status">Статус</option>
+                    <option value="source">Источник</option>
+                    <option value="employee">Ответственный сотрудник</option>
                 </select>
             </div>
             <!-- Выпадающее меню для работы с Excel -->
@@ -65,18 +63,21 @@
         </div>
 
         <!-- Таблица данных -->
-        <div class="table-responsive">
-            <table id="data-table" class="display table table-striped table-hover table-bordered" >
+        <div id="table-container" class="table-responsive custom-scrollbar">
+            <table id="data-table" class="display table table-hover table-bordered">
                 <thead>
                 <tr>
                     <th>№</th>
-                    <th>Дата</th>
-                    <th>№ карточки</th>
+                    <th>Дата обращения</th>
+                    <th>№ Карточки</th>
                     <th>Поселение</th>
                     <th>Адрес</th>
-                    <th>Проблемная тема</th>
+                    <th>Координаты</th>
+                    <th>Тема обращения</th>
                     <th>Принятые меры</th>
-                    <th>Статус работ</th>
+                    <th>Статус</th>
+                    <th>Источник</th>
+                    <th>Ответственный</th>
                 </tr>
                 </thead>
                 <tbody></tbody>
@@ -102,17 +103,165 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p><strong>Номер:</strong> <span id="modal-num"></span></p>
-                <p><strong>Дата:</strong> <span id="modal-date"></span></p>
-                <p><strong>Номер карты:</strong> <span id="modal-card-number"></span></p>
-                <p><strong>Населенный пункт:</strong> <span id="modal-settlement"></span></p>
+                <p><strong>№ ДС:</strong> <span id="modal-num"></span></p>
+                <p><strong>Дата обращения:</strong> <span id="modal-date"></span></p>
+                <p><strong>№ Карточки:</strong> <span id="modal-card-number"></span></p>
+                <p><strong>Поселение:</strong> <span id="modal-settlement"></span></p>
                 <p><strong>Адрес:</strong> <span id="modal-address"></span></p>
-                <p><strong>Тема:</strong> <span id="modal-topic"></span></p>
-                <p><strong>Меры:</strong> <span id="modal-measures"></span></p>
+                <p><strong>Координаты:</strong> <span id="modal-coordinates"></span></p>
+                <p><strong>Тема обращения:</strong> <span id="modal-topic"></span></p>
+                <p><strong>Принятые меры:</strong> <span id="modal-measures"></span></p>
                 <p><strong>Статус:</strong> <span id="modal-status"></span></p>
+                <p><strong>Источник:</strong> <span id="modal-source"></span></p>
+                <p><strong>Ответственный сотрудник:</strong> <span id="modal-employee"></span></p>
             </div>
             <div class="modal-footer">
+                <button id="edit-button" class="btn btn-primary">Редактировать</button>
+                <button id="delete-button" class="btn btn-danger">Удалить</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для редактирования -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Обращение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-num">№ ДС:</label>
+                    <input type="text" id="edit-num" class="form-control" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="edit-date">Дата обращения:</label>
+                    <input type="date" id="edit-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-card-number">№ Карточки обращения:</label>
+                    <input type="text" id="edit-card-number" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-settlement">Поселение:</label>
+                    <input type="text" id="edit-settlement" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-address">Адрес:</label>
+                    <input type="text" id="edit-address" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-coordinates">Координаты:</label>
+                    <input type="text" id="edit-coordinates" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-topic">Тема обращения:</label>
+                    <input type="text" id="edit-topic" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-measures">Принятые меры:</label>
+                    <input type="text" id="edit-measures" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-status">Статус:</label>
+                    <input type="text" id="edit-status" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-source">Источник:</label>
+                    <input type="text" id="edit-source" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-employee">Ответственный сотрудник:</label>
+                    <input type="text" id="edit-employee" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-edit-button" class="btn btn-secondary">Сохранить изменения</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления нового обращения -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Добавить новое обращение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="add-num">№ ДС:</label>
+                    <input type="text" id="add-num" class="form-control" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="add-date">Дата обращения:</label>
+                    <input type="date" id="add-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-card-number">№ Карточки обращения:</label>
+                    <input type="text" id="add-card-number" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-settlement">Поселение:</label>
+                    <input type="text" id="add-settlement" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-address">Адрес:</label>
+                    <input type="text" id="add-address" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-coordinates">Координаты:</label>
+                    <input type="text" id="add-coordinates" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-topic">Тема обращения:</label>
+                    <input type="text" id="add-topic" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-measures">Принятые меры:</label>
+                    <input type="text" id="add-measures" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-status">Статус:</label>
+                    <input type="text" id="add-status" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-source">Источник:</label>
+                    <input type="text" id="add-source" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-employee">Ответственный сотрудник:</label>
+                    <input type="text" id="add-employee" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-add-button" class="btn btn-primary">Добавить обращение</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для подтверждения удаления -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить это обращение? Это действие нельзя отменить.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="confirmDeleteButton" class="btn btn-danger">Удалить</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
             </div>
         </div>
     </div>
@@ -124,6 +273,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script src="src/js/appeals-journal.js"></script>
 </body>
 </html>
