@@ -490,3 +490,47 @@ function isValidCoordinates(coordinates) {
 	const regex = /^[-+]?[0-9]*\.?[0-9]+,[-+]?[0-9]*\.?[0-9]+$/
 	return regex.test(coordinates.trim())
 }
+
+let map, placemark, targetInput;
+
+function initMap() {
+	map = new ymaps.Map("map", {
+		center: [55.39, 37.33],
+		zoom: 9,
+	});
+
+
+	// Событие клика на карте
+	map.events.add('click', function (e) {
+		const coords = e.get('coords');
+
+		// Если метка уже существует, обновить её координаты
+		if (placemark) {
+			placemark.geometry.setCoordinates(coords);
+		} else {
+			// Если метки нет, создать новую
+			placemark = new ymaps.Placemark(coords, {}, { draggable: true });
+			map.geoObjects.add(placemark);
+		}
+
+		// Обновить координаты в поле
+		if (targetInput) {
+			targetInput.value = coords.map(coord => coord.toFixed(6)).join(',');
+		}
+	});
+}
+
+function toggleMap(inputId) {
+	const mapContainer = document.getElementById('map'); // Контейнер для карты
+	targetInput = document.getElementById(inputId); // Поле для ввода координат
+
+	// Показать или скрыть карту
+	if (mapContainer.style.display === 'block') {
+		mapContainer.style.display = 'none'; // Скрыть карту
+	} else {
+		mapContainer.style.display = 'block'; // Показать карту
+		if (!map) {
+			ymaps.ready(initMap); // Инициализировать карту, если она ещё не была создана
+		}
+	}
+}
