@@ -6,7 +6,7 @@
     position: absolute;
     right: 0; /* Привязываем правый край меню к кнопке */
     bottom: calc(100% + 10px);
-    width: 260px; /* Ширина меню */
+    width: 280px; /* Ширина меню */
     background-color: white;
     border: 1px solid #ddd;
     padding: 30px 30px 20px 30px;
@@ -87,6 +87,35 @@
 }
 
 #toggleFilterMenu:hover {
+    background-color: #0078ff;
+    color: #ffffff;
+}
+
+/* Стили для заголовков и полей ввода */
+.filter-label {
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+}
+.filter-flex {
+    display: flex;
+    justify-content: space-between; /* Выравнивание кнопок по краям */
+}
+
+#applyDateFilter:hover,
+#resetDateFilter:hover,
+#resetCheckboxes:hover {
     background-color: #0078ff; /* Серый фон при наведении */
     color: #ffffff;
 }
+

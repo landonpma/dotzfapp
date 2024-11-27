@@ -31,71 +31,90 @@
             </div>
 
             <div class="filter-menu">
-                <button class="btn btn-primary" id="toggleFilterMenu">Районы</button>
+                <button class="btn btn-primary" id="toggleFilterMenu">Фильтр</button>
                 <div class="filter-content" id="filterContent" style="display: none;">
-                    <div class="mb-3" id="districtCheckboxes">
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Бекасово">
-                                <span class="custom-checkbox-box"></span>
-                                Бекасово
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Внуково">
-                                <span class="custom-checkbox-box"></span>
-                                Внуково
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Вороново">
-                                <span class="custom-checkbox-box"></span>
-                                Вороново
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Коммунарка">
-                                <span class="custom-checkbox-box"></span>
-                                Коммунарка
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Краснопахорский">
-                                <span class="custom-checkbox-box"></span>
-                                Краснопахорский
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Филимонковский">
-                                <span class="custom-checkbox-box"></span>
-                                Филимонковский
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Щербинка">
-                                <span class="custom-checkbox-box"></span>
-                                Щербинка
-                            </label>
-                        </div>
-                        <div class="custom-checkbox-wrapper">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" value="Троицк">
-                                <span class="custom-checkbox-box"></span>
-                                Троицк
-                            </label>
-                        </div>
-                        <hr class="dropdown-divider" />
 
+                    <!-- Фильтр по районам -->
+                    <div class="filter-section">
+                        <h5>По районам</h5>
+                        <hr class="dropdown-divider" />
+                        <div id="districtCheckboxes">
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Бекасово">
+                                    <span class="custom-checkbox-box"></span>
+                                    Бекасово
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Внуково">
+                                    <span class="custom-checkbox-box"></span>
+                                    Внуково
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Вороново">
+                                    <span class="custom-checkbox-box"></span>
+                                    Вороново
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Коммунарка">
+                                    <span class="custom-checkbox-box"></span>
+                                    Коммунарка
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Краснопахорский">
+                                    <span class="custom-checkbox-box"></span>
+                                    Краснопахорский
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Филимонковский">
+                                    <span class="custom-checkbox-box"></span>
+                                    Филимонковский
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Щербинка">
+                                    <span class="custom-checkbox-box"></span>
+                                    Щербинка
+                                </label>
+                            </div>
+                            <div class="custom-checkbox-wrapper">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" value="Троицк">
+                                    <span class="custom-checkbox-box"></span>
+                                    Троицк
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn w-100 mt-1 mb-1" id="resetCheckboxes">Сбросить</button>
                     </div>
-                    <button class="btn text-black w-100" id="resetCheckboxes">Сбросить</button>
+
+                    <!-- Фильтр по дате -->
+                    <div class="filter-section">
+                        <h5>По дате</h5>
+                        <hr class="dropdown-divider" />
+                        <label for="startDate" class="filter-label">Начальная дата:</label>
+                        <input type="date" id="startDate" class="filter-input">
+                        <label for="endDate" class="filter-label">Конечная дата:</label>
+                        <input type="date" id="endDate" class="filter-input">
+                        <div class="filter-flex">
+                            <button id="applyDateFilter" class="btn">Применить</button>
+                            <button id="resetDateFilter" class="btn">Сбросить</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </div>
 
         <!-- Контейнер карты Yandex Maps API -->

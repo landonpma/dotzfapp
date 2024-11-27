@@ -29,26 +29,21 @@
 
 
 .custom-cluster-balloon {
-    font-family: 'Arial', sans-serif;
-    max-width: 450px;
+    max-width: 350px;
     background-color: #ffffff;
     border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .custom-cluster-balloon h2 {
     font-size: 18px;
+    font-weight: bold;
     color: #0078ff;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #0078ff;
-    padding-bottom: 5px;
+    margin: 10px;
 }
 
 .custom-cluster-balloon .scrollable-content {
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
     background-color: #f9f9f9;

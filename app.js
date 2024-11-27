@@ -710,6 +710,28 @@ app.get('/get-appeals', (req, res) => {
     });
 });
 
+app.get('/filter-appeals-by-date', (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ success: false, message: 'Не указаны даты для фильтрации' });
+    }
+
+    const query = `
+        SELECT * FROM appeals
+        WHERE strftime('%Y-%m-%d', substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2))
+        BETWEEN strftime('%Y-%m-%d', ?) AND strftime('%Y-%m-%d', ?)
+    `;
+
+    db.all(query, [startDate, endDate], (err, rows) => {
+        if (err) {
+            console.error('Ошибка фильтрации данных:', err);
+            return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
+        }
+
+        res.json({ success: true, data: rows });
+    });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
