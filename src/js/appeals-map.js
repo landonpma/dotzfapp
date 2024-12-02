@@ -79,6 +79,7 @@ ymaps.ready().then(function() {
 		// Очистка полей ввода даты
 		document.getElementById('startDate').value = ''
 		document.getElementById('endDate').value = ''
+		document.getElementById('statusFilter').value = ''
 
 		loadAppeals()
 	})
@@ -512,42 +513,36 @@ document.getElementById('save-edit-button').addEventListener('click', function()
 })
 
 function filterAppeals(startDate, endDate, status, districts) {
-	const url = new URL('/filter-appeals', window.location.origin);
+	const url = new URL('/filter-appeals', window.location.origin)
 
-	// Добавляем параметры только если они указаны
-	if (startDate) url.searchParams.append('startDate', startDate);
-	if (endDate) url.searchParams.append('endDate', endDate);
-	if (status) url.searchParams.append('status', status);
+	if (startDate) url.searchParams.append('startDate', startDate)
+	if (endDate) url.searchParams.append('endDate', endDate)
+	if (status) url.searchParams.append('status', status)
 	if (districts && districts.length > 0) {
-		url.searchParams.append('districts', districts.join(','));
+		url.searchParams.append('districts', districts.join(','))
 	}
 
-	console.log('URL для фильтрации:', url.toString()); // Лог для отладки
-
-	// Вызываем функцию загрузки данных
-	loadAppeals(url.toString());
+	loadAppeals(url.toString())
 }
 
 document.getElementById('applyDateFilter').addEventListener('click', function() {
 	// Получаем значения фильтров
-	const startDate = document.getElementById('startDate').value;
-	const endDate = document.getElementById('endDate').value;
+	const startDate = document.getElementById('startDate').value
+	const endDate = document.getElementById('endDate').value
 
 	// Собираем выбранные районы
 	const selectedDistricts = Array.from(
 		document.querySelectorAll('#districtCheckboxes input[type="checkbox"]:checked')
-	).map(checkbox => checkbox.value);
+	).map(checkbox => checkbox.value)
 
-	const status = document.getElementById('statusFilter').value; // Значение фильтра по статусу
+	const status = document.getElementById('statusFilter').value // Значение фильтра по статусу
 
 	// Проверяем, что хотя бы один фильтр активен
 	if (!startDate && !endDate && !status && selectedDistricts.length === 0) {
-		toastr.warning('Пожалуйста, выберите хотя бы один критерий фильтрации.');
-		return;
+		toastr.warning('Пожалуйста, выберите хотя бы один критерий фильтрации.')
+		return
 	}
 
-	console.log('Параметры фильтрации:', { startDate, endDate, status, selectedDistricts }); // Лог для отладки
-
 	// Отправляем параметры на сервер
-	filterAppeals(startDate, endDate, status, selectedDistricts);
-});
+	filterAppeals(startDate, endDate, status, selectedDistricts)
+})
