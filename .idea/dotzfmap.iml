@@ -18,5 +18,6 @@
     <orderEntry type="library" name="jquery" level="application" />
     <orderEntry type="library" name="xlsx" level="application" />
     <orderEntry type="library" name="intro.js" level="application" />
+    <orderEntry type="library" name="chartjs-plugin-annotation" level="application" />
   </component>
 </module>

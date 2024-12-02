@@ -1,11 +1,19 @@
+.dashboard {
+    display: flex;
+}
+
 .weather-widget {
     position: relative;
     margin: 20px;
     padding: 20px;
-    background: #f5f5f5;
+    background: #f6f6f6;
     border-radius: 30px;
-    min-width: 340px;
+    min-width: 320px;
+    text-decoration: none;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
 }
+
 
 .weather-widget h5 {
     font-weight: 200;
@@ -25,7 +33,8 @@
     font-weight: bold;
     display: flex;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    min-width: 5vw;
 }
 
 .wind svg, .humidity svg {
@@ -43,16 +52,20 @@
 
 
 /* Стили для виджета энергопотребления */
-.energy-consumption-widget {
+.statistic-widget {
     position: relative;
     margin: 20px 20px 20px 0;
     padding: 20px;
-    background: #f5f5f5;
+    background: #f6f6f6;
     border-radius: 30px;
     width: 40vw;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
-.energy-consumption-widget h5 {
+
+
+.statistic-widget h5 {
     font-weight: 200;
 }
 
@@ -61,58 +74,33 @@
     flex-direction: column;
 }
 
-.consumption .electricity,
-.consumption .heat,
-.consumption .water {
+.consumption .statistic-value {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
 }
 
 /* Стили для раздела событий в Москве */
-.moscow-events {
+.appeals-events {
     position: relative;
     margin: 20px 20px 20px 0;
     padding: 20px;
-    background: #f5f5f5;
+    background: #f6f6f6;
     border-radius: 30px;
     width: 100vw;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
-.moscow-events h5 {
+
+
+.appeals-events h5 {
     font-weight: 200;
 }
 
-.moscow-events .event-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    opacity: 0;
-    transition: opacity 1s;
-}
-
-.moscow-events .event-item img {
-    width: 100px;
-    height: 100px;
-    margin-right: 10px;
-}
-
-.moscow-events .event-item p {
-    font-weight: bold;
-}
-
-.moscow-events .event-item.active {
-    opacity: 1;
-    transition: opacity 1s;
-}
 
 
-.fade-out {
-    opacity: 0;
-    transition: opacity 1s;
-}
-
-.moscow-events .event-item .arrow-link {
+.appeals-events .event-item .arrow-link {
     position: absolute;
     right: 20px;
     bottom: 40px;
@@ -128,55 +116,105 @@
     position: relative;
     margin: 0 0 20px 20px;
     padding: 20px;
-    background: #f5f5f5;
+    background: #f6f6f6;
     border-radius: 30px;
-    width: 80vw;
-    height: 60vh;
+    width: 63.55vw;
+    height: 64vh;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
 .current-events h5 {
     font-weight: 200;
 }
 
-.current-events .events-list {
-    overflow: hidden; /* Убираем скролл */
-}
-
-.current-events table {
+.current-news {
+    position: relative;
+    margin: 0 20px 20px 20px;
+    padding: 20px;
+    background: #f6f6f6;
+    border-radius: 30px;
     width: 100%;
-    border-collapse: collapse;
-    border: none; /* Убираем границы таблицы */
+    height: 64vh;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
-.current-events th, .current-events td {
-    border: none; /* Убираем границы таблицы */
-    padding: 8px;
+.current-news h5 {
+    font-weight: 200;
 }
 
-.current-events th {
-    text-align: left;
+.chart-container {
+    position: relative;
+    height: 50vh; /* Высота графика */
+    width: 70vw; /* Задаем ширину графика относительно родительского контейнера */
+    max-width: 100%; /* Ограничение максимальной ширины */
+    border-radius: 10px; /* Скругленные углы */
 }
 
-.current-events .pagination {
+/* Родительский контейнер, управляющий сеткой */
+.tile-block-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Две колонки */
+    grid-template-rows: repeat(2, 1fr);   /* Две строки */
+    gap: 20px; /* Расстояние между контейнерами */
+    width: 100vw;
+    margin: 0 20px 20px 20px;
+}
+
+/* Стиль для каждого отдельного контейнера */
+.tile-container {
+    background: #f6f6f6;
+    border-radius: 30px;
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* Расположение содержимого в колонку */
     align-items: center;
-    margin-top: 10px;
+    justify-content: center;
+    min-height: 100px; /* Минимальная высота квадрата */
+    text-align: center;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
-.current-events .pagination button {
-    margin: 10px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 25px; /* Скругленные углы */
-    background-color: #FFFFFF; /* Белый фон */
-    color: #000000; /* Черный текст */
-    font-weight: bold;
+.tile-container:hover,
+.appeals-events:hover,
+.weather-widget:hover,
+.statistic-widget:hover {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02); /* Немного увеличивает изображение */
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
 }
 
-.current-events .pagination button:hover {
-    background-color: #0078ff; /* Синий фон при наведении */
-    color: #FFFFFF; /* Белый текст при наведении */
+/* Текст внутри каждого контейнера */
+.tile-container h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
 }
+
+.tile-container p {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 10px 0 0;
+}
+
+.tile-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Для сохранения пропорций видео и заполнения контейнера */
+    border-radius: 30px; /* Совпадает с радиусом контейнера */
+}
+
+.tile-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Сохранение пропорций изображения */
+    border-radius: 30px; /* Совпадает с радиусом контейнера */
+    object-position: center; /* Центрирование изображения */
+    transform: scale(1.1); /* Немного увеличивает изображение */
+}
+
+
+

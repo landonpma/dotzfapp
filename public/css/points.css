@@ -29,7 +29,7 @@
 
 
 .custom-cluster-balloon {
-    max-width: 350px;
+    max-width: 400px;
     background-color: #ffffff;
     border-radius: 10px;
 }
@@ -61,6 +61,7 @@
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #ffffff;
+    cursor: pointer;
 }
 
 .custom-cluster-balloon li.balloon-item:hover {

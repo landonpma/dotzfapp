@@ -1,64 +1,6 @@
 let myMap
 let objectManager
 
-function filterAppealsByDate(startDate, endDate) {
-	fetch(`/filter-appeals-by-date?startDate=${startDate}&endDate=${endDate}`)
-		.then(response => response.json())
-		.then(data => {
-			if (data.success) {
-				const features = data.data.map(appeal => {
-					const coordinates = parseCoordinates(appeal.coordinates);
-					if (!coordinates) {
-						console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`);
-						return null;
-					}
-					return {
-						type: 'Feature',
-						id: appeal.id,
-						geometry: { type: 'Point', coordinates },
-						properties: {
-							number: appeal.num,
-							date: appeal.date,
-							topic: appeal.topic,
-							address: appeal.address,
-							status: appeal.status,
-							employee: appeal.employee,
-							balloonContent: createBalloonContent(appeal),
-							hintContent: appeal.num
-						}
-					};
-				}).filter(Boolean);
-
-				objectManager.removeAll();
-				objectManager.add({
-					type: 'FeatureCollection',
-					features: features
-				});
-
-				const bounds = objectManager.getBounds();
-				if (bounds) {
-					myMap.setBounds(bounds, { checkZoomRange: true });
-				}
-			} else {
-				console.error('Ошибка фильтрации данных:', data.message);
-			}
-		})
-		.catch(error => console.error('Ошибка фильтрации данных:', error));
-}
-
-document.getElementById('applyDateFilter').addEventListener('click', function () {
-	const startDate = document.getElementById('startDate').value;
-	const endDate = document.getElementById('endDate').value;
-
-	if (!startDate || !endDate) {
-		alert('Пожалуйста, выберите обе даты.');
-		return;
-	}
-
-	filterAppealsByDate(startDate, endDate);
-});
-
-
 ymaps.ready().then(function() {
 	myMap = new ymaps.Map('map', {
 		center: [55.39, 37.33],
@@ -84,7 +26,7 @@ ymaps.ready().then(function() {
         <div class="scrollable-content">
             <ul>
                 {% for geoObject in properties.geoObjects %}
-                    <li class="balloon-item">
+                    <li class="balloon-item" data-num="{{ geoObject.properties.number }}">
                         <strong>Заявление № {{ geoObject.properties.number }}</strong>
                         <p><strong>Дата:</strong> {{ geoObject.properties.date }}</p>
                     </li>
@@ -92,11 +34,11 @@ ymaps.ready().then(function() {
             </ul>
         </div>
     </div>`
-	)
+	);
 
 	objectManager = new ymaps.ObjectManager({
 		clusterize: true,
-		gridSize: 48,
+		gridSize: 46,
 		clusterDisableClickZoom: true,
 		clusterOpenBalloonOnClick: true,
 		clusterBalloonContentLayout: customClusterBalloonLayout,
@@ -133,10 +75,10 @@ ymaps.ready().then(function() {
 	myMap.geoObjects.add(objectManager)
 
 	// Сброс фильтра по дате
-	document.getElementById('resetDateFilter').addEventListener('click', function () {
+	document.getElementById('resetDateFilter').addEventListener('click', function() {
 		// Очистка полей ввода даты
-		document.getElementById('startDate').value = '';
-		document.getElementById('endDate').value = '';
+		document.getElementById('startDate').value = ''
+		document.getElementById('endDate').value = ''
 
 		// Повторная загрузка всех данных
 		fetch('/get-appeals')
@@ -144,10 +86,10 @@ ymaps.ready().then(function() {
 			.then(data => {
 				if (data.success) {
 					const features = data.appeals.map(appeal => {
-						const coordinates = parseCoordinates(appeal.coordinates);
+						const coordinates = parseCoordinates(appeal.coordinates)
 						if (!coordinates) {
-							console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`);
-							return null;
+							console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`)
+							return null
 						}
 						return {
 							type: 'Feature',
@@ -163,25 +105,25 @@ ymaps.ready().then(function() {
 								balloonContent: createBalloonContent(appeal),
 								hintContent: appeal.num
 							}
-						};
-					}).filter(Boolean);
+						}
+					}).filter(Boolean)
 
-					objectManager.removeAll();
+					objectManager.removeAll()
 					objectManager.add({
 						type: 'FeatureCollection',
 						features: features
-					});
+					})
 
-					const bounds = objectManager.getBounds();
+					const bounds = objectManager.getBounds()
 					if (bounds) {
-						myMap.setBounds(bounds, { checkZoomRange: true });
+						myMap.setBounds(bounds, { checkZoomRange: true })
 					}
 				} else {
-					console.error('Ошибка загрузки данных:', data.message);
+					console.error('Ошибка загрузки данных:', data.message)
 				}
 			})
-			.catch(error => console.error('Ошибка загрузки данных:', error));
-	});
+			.catch(error => console.error('Ошибка загрузки данных:', error))
+	})
 
 	// Загрузка данных обращений
 	fetch('/get-appeals')
@@ -205,9 +147,14 @@ ymaps.ready().then(function() {
 						properties: {
 							number: index + 1,
 							date: appeal.date,
-							topic: appeal.topic,
+							card_number: appeal.card_number,
+							settlement: appeal.settlement,
 							address: appeal.address,
+							coordinates: appeal.coordinates,
+							topic: appeal.topic,
+							measures: appeal.measures,
 							status: appeal.status,
+							source: appeal.source,
 							employee: appeal.employee,
 							balloonContent: createBalloonContent(appeal), // Формируем содержимое балуна
 							hintContent: appeal.num // Текст для подсказки
@@ -231,6 +178,88 @@ ymaps.ready().then(function() {
 			}
 		})
 		.catch(error => console.error('Ошибка загрузки данных:', error))
+
+
+	// Добавляем обработчик событий для клика на маркеры
+	objectManager.objects.events.add('click', function(e) {
+		const objectId = e.get('objectId')
+		const object = objectManager.objects.getById(objectId)
+
+		if (object) {
+			// Заполняем данные модального окна
+			document.getElementById('modal-num').textContent = object.properties.number || 'Не указано'
+			document.getElementById('modal-date').textContent = object.properties.date || 'Не указано'
+			document.getElementById('modal-card-number').textContent = object.properties.card_number || 'Не указано'
+			document.getElementById('modal-settlement').textContent = object.properties.settlement || 'Не указано'
+			document.getElementById('modal-address').textContent = object.properties.address || 'Не указано'
+			document.getElementById('modal-coordinates').textContent = object.geometry.coordinates.join(', ') || 'Не указано'
+			document.getElementById('modal-topic').textContent = object.properties.topic || 'Не указано'
+			document.getElementById('modal-measures').textContent = object.properties.measures || 'Не указано'
+			document.getElementById('modal-status').textContent = object.properties.status || 'Не указано'
+			document.getElementById('modal-source').textContent = object.properties.source || 'Не указано'
+			document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано'
+
+			// Открываем модальное окно
+			const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
+			detailsModal.show()
+		}
+	})
+
+
+	// Обработчик события открытия балуна кластера
+	objectManager.clusters.events.add('balloonopen', function (e) {
+		const clusterId = e.get('objectId'); // Получаем ID кластера
+		const cluster = objectManager.clusters.getById(clusterId); // Получаем данные кластера
+
+		if (cluster) {
+			// Устанавливаем обработчики для элементов <li> внутри балуна
+			const listItems = document.querySelectorAll('.balloon-item');
+			if (!listItems || listItems.length === 0) {
+				return; // Если объектов нет, выходим
+			}
+
+			listItems.forEach(item => {
+				item.addEventListener('click', function () {
+					const objectNum = item.getAttribute('data-num'); // Получаем num объекта
+
+					if (!objectNum) {
+						return; // Если num объекта не найден, выходим
+					}
+
+					// Ищем объект по num в кластере
+					const object = cluster.properties.geoObjects.find(obj => obj.properties.number === parseInt(objectNum, 10));
+
+					if (!object) {
+						return; // Если объект не найден, выходим
+					}
+
+					// Проверяем наличие модального окна
+					const modalElement = document.getElementById('detailsModal');
+					if (!modalElement) {
+						return; // Если модальное окно не найдено, выходим
+					}
+
+					// Заполняем данные модального окна
+					document.getElementById('modal-num').textContent = object.properties.number || 'Не указано';
+					document.getElementById('modal-date').textContent = object.properties.date || 'Не указано';
+					document.getElementById('modal-card-number').textContent = object.properties.card_number || 'Не указано';
+					document.getElementById('modal-settlement').textContent = object.properties.settlement || 'Не указано';
+					document.getElementById('modal-address').textContent = object.properties.address || 'Не указано';
+					document.getElementById('modal-coordinates').textContent = object.geometry.coordinates.join(', ') || 'Не указано';
+					document.getElementById('modal-topic').textContent = object.properties.topic || 'Не указано';
+					document.getElementById('modal-measures').textContent = object.properties.measures || 'Не указано';
+					document.getElementById('modal-status').textContent = object.properties.status || 'Не указано';
+					document.getElementById('modal-source').textContent = object.properties.source || 'Не указано';
+					document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано';
+
+					// Открываем модальное окно
+					const detailsModal = new bootstrap.Modal(modalElement);
+					detailsModal.show();
+				});
+			});
+		}
+	});
+
 
 	// Общая функция для изменения стиля на наведение
 	function handleHover(eventType, entityType, entityId) {
@@ -365,25 +394,176 @@ ymaps.ready().then(function() {
 function parseCoordinates(coordString) {
 	try {
 		if (/^[-\d.]+,[-\d.]+$/.test(coordString)) {
-			return coordString.split(',').map(Number);
+			return coordString.split(',').map(Number)
 		} else if (/^\[.*\]$/.test(coordString)) {
-			return JSON.parse(coordString);
+			return JSON.parse(coordString)
 		}
 	} catch {
-		console.error('Некорректные координаты:', coordString);
+		console.error('Некорректные координаты:', coordString)
 	}
-	return null;
+	return null
 }
 
 // Функция создания содержимого балуна
 function createBalloonContent(appeal) {
-	let content = '';
-	if (appeal.date) content += `<strong>Дата:</strong> ${appeal.date}<br>`;
-	if (appeal.card_number) content += `<strong>Номер обращения:</strong> ${appeal.card_number}<br>`;
-	if (appeal.topic) content += `<strong>Тема:</strong> ${appeal.topic}<br>`;
-	if (appeal.address) content += `<strong>Адрес:</strong> ${appeal.address}<br>`;
-	if (appeal.status) content += `<strong>Статус:</strong> ${appeal.status}<br>`;
-	if (appeal.source) content += `<strong>Источник:</strong> ${appeal.source}<br>`;
-	if (appeal.employee) content += `<strong>Ответственный:</strong> ${appeal.employee}<br>`;
-	return content;
+	let content = ''
+	if (appeal.date) content += `<strong>Дата:</strong> ${appeal.date}<br>`
+	if (appeal.card_number) content += `<strong>Номер обращения:</strong> ${appeal.card_number}<br>`
+	if (appeal.topic) content += `<strong>Тема:</strong> ${appeal.topic}<br>`
+	if (appeal.address) content += `<strong>Адрес:</strong> ${appeal.address}<br>`
+	if (appeal.status) content += `<strong>Статус:</strong> ${appeal.status}<br>`
+	if (appeal.source) content += `<strong>Источник:</strong> ${appeal.source}<br>`
+	if (appeal.employee) content += `<strong>Ответственный:</strong> ${appeal.employee}<br>`
+	return content
 }
+
+// Открытие модального окна редактирования
+document.getElementById('edit-button').addEventListener('click', function() {
+	const detailsModal = bootstrap.Modal.getInstance(document.getElementById('detailsModal'))
+	if (detailsModal) {
+		detailsModal.hide() // Закрываем окно с деталями
+	}
+
+	const modalNum = document.getElementById('modal-num').textContent
+
+	// Заполняем поля редактирования из данных текущего обращения
+	document.getElementById('edit-num').value = modalNum
+	document.getElementById('edit-date').value = document.getElementById('modal-date').textContent || ''
+	document.getElementById('edit-card-number').value = document.getElementById('modal-card-number').textContent || ''
+	document.getElementById('edit-settlement').value = document.getElementById('modal-settlement').textContent || ''
+	document.getElementById('edit-address').value = document.getElementById('modal-address').textContent || ''
+	document.getElementById('edit-coordinates').value = document.getElementById('modal-coordinates').textContent || ''
+	document.getElementById('edit-topic').value = document.getElementById('modal-topic').textContent || ''
+	document.getElementById('edit-measures').value = document.getElementById('modal-measures').textContent || ''
+	document.getElementById('edit-status').value = document.getElementById('modal-status').textContent || ''
+	document.getElementById('edit-source').value = document.getElementById('modal-source').textContent || ''
+	document.getElementById('edit-employee').value = document.getElementById('modal-employee').textContent || ''
+
+	// Открываем модальное окно редактирования
+	const editModal = new bootstrap.Modal(document.getElementById('editModal'))
+	editModal.show()
+})
+
+// Открытие модального окна подтверждения удаления
+document.getElementById('delete-button').addEventListener('click', function() {
+	const detailsModal = bootstrap.Modal.getInstance(document.getElementById('detailsModal'))
+	if (detailsModal) {
+		detailsModal.hide() // Закрываем окно с деталями
+	}
+
+	// Открываем модальное окно подтверждения удаления
+	const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'))
+	confirmDeleteModal.show()
+
+	// Добавляем обработчик для подтверждения удаления
+	document.getElementById('confirmDeleteButton').onclick = function() {
+		const modalNum = document.getElementById('modal-num').textContent
+
+		fetch('/delete-appeal', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ num: modalNum })
+		})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					alert('Обращение успешно удалено!')
+					location.reload()
+				} else {
+					alert('Ошибка при удалении обращения: ' + data.message)
+				}
+			})
+			.catch(error => console.error('Ошибка при удалении обращения:', error))
+	}
+})
+
+// Обработчик для сохранения изменений
+document.getElementById('save-edit-button').addEventListener('click', function() {
+	const editedData = {
+		num: document.getElementById('edit-num').value,
+		date: document.getElementById('edit-date').value,
+		card_number: document.getElementById('edit-card-number').value,
+		settlement: document.getElementById('edit-settlement').value,
+		address: document.getElementById('edit-address').value,
+		coordinates: document.getElementById('edit-coordinates').value,
+		topic: document.getElementById('edit-topic').value,
+		measures: document.getElementById('edit-measures').value,
+		status: document.getElementById('edit-status').value,
+		source: document.getElementById('edit-source').value,
+		employee: document.getElementById('edit-employee').value
+	}
+
+	// Отправляем данные на сервер
+	fetch('/update-appeal', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(editedData)
+	})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				alert('Изменения успешно сохранены!')
+				location.reload()
+			} else {
+				alert('Ошибка при сохранении изменений: ' + data.message)
+			}
+		})
+		.catch(error => console.error('Ошибка при обновлении данных:', error))
+})
+
+function filterAppealsByDate(startDate, endDate) {
+	fetch(`/filter-appeals-by-date?startDate=${startDate}&endDate=${endDate}`)
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				const features = data.data.map(appeal => {
+					const coordinates = parseCoordinates(appeal.coordinates)
+					if (!coordinates) {
+						console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`)
+						return null
+					}
+					return {
+						type: 'Feature',
+						id: appeal.id,
+						geometry: { type: 'Point', coordinates },
+						properties: {
+							number: appeal.num,
+							date: appeal.date,
+							topic: appeal.topic,
+							address: appeal.address,
+							status: appeal.status,
+							employee: appeal.employee,
+							balloonContent: createBalloonContent(appeal),
+							hintContent: appeal.num
+						}
+					}
+				}).filter(Boolean)
+
+				objectManager.removeAll()
+				objectManager.add({
+					type: 'FeatureCollection',
+					features: features
+				})
+
+				const bounds = objectManager.getBounds()
+				if (bounds) {
+					myMap.setBounds(bounds, { checkZoomRange: true })
+				}
+			} else {
+				console.error('Ошибка фильтрации данных:', data.message)
+			}
+		})
+		.catch(error => console.error('Ошибка фильтрации данных:', error))
+}
+
+document.getElementById('applyDateFilter').addEventListener('click', function() {
+	const startDate = document.getElementById('startDate').value
+	const endDate = document.getElementById('endDate').value
+
+	if (!startDate || !endDate) {
+		alert('Пожалуйста, выберите обе даты.')
+		return
+	}
+
+	filterAppealsByDate(startDate, endDate)
+})

@@ -148,24 +148,6 @@
 
 }
 
-
-.video-container {
-    border-radius: 30px;
-    margin-left: 20px;
-    margin-right: 20px;
-    overflow: hidden;
-    max-width: 60%;
-    min-width: 300px;
-    height: 60vh;
-    position: relative;
-}
-
-.video-container video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
 #additionalFields {
     margin-top: 15px;
 }

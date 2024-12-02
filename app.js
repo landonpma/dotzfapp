@@ -1,47 +1,47 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import bcrypt from 'bcryptjs';
-import sqlite3 from 'sqlite3';
-import path from 'path';
-import session from 'express-session';
-import moment from 'moment';
-import cors from 'cors';
-import multer from 'multer';
-import fs from 'fs';
-import {fileURLToPath} from 'url';
+import express from 'express'
+import bodyParser from 'body-parser'
+import bcrypt from 'bcryptjs'
+import sqlite3 from 'sqlite3'
+import path from 'path'
+import session from 'express-session'
+import moment from 'moment'
+import cors from 'cors'
+import multer from 'multer'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-const app = express();
-const db = new sqlite3.Database('./sqlite.db');
+const app = express()
+const db = new sqlite3.Database('./sqlite.db')
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs')
+app.set('views', path.join(__dirname, 'views'))
 
-app.use(cors());
-app.use(bodyParser.json({limit: '50mb'})); // Увеличение лимита до 50MB для JSON
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true})); // Увеличение лимита до 50MB для URL-encoded данных
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/src', express.static(path.join(__dirname, 'src')));
-app.use('/geojson', express.static(path.join(__dirname, 'geojson')));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors())
+app.use(bodyParser.json({ limit: '50mb' })) // Увеличение лимита до 50MB для JSON
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })) // Увеличение лимита до 50MB для URL-encoded данных
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use('/src', express.static(path.join(__dirname, 'src')))
+app.use('/geojson', express.static(path.join(__dirname, 'geojson')))
+app.use(express.static(path.join(__dirname, 'public')))
 app.use(session({
-    secret: 'your_secret_key', resave: false, saveUninitialized: true, cookie: {secure: false}
-}));
+	secret: 'your_secret_key', resave: false, saveUninitialized: true, cookie: { secure: false }
+}))
 
 
 db.serialize(() => {
-    db.run(`
+	db.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT UNIQUE,
           email TEXT UNIQUE,
           password TEXT
         )
-    `);
+    `)
 
-    db.run(`
+	db.run(`
         CREATE TABLE IF NOT EXISTS sessions (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER,
@@ -51,9 +51,9 @@ db.serialize(() => {
           expires_at TEXT,
           FOREIGN KEY(user_id) REFERENCES users(id)
         )
-    `);
+    `)
 
-    db.run(`
+	db.run(`
         CREATE TABLE IF NOT EXISTS lines (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT,
@@ -75,8 +75,8 @@ db.serialize(() => {
           photo TEXT,
           FOREIGN KEY(username) REFERENCES users(username)
         )
-    `);
-    db.run(`
+    `)
+	db.run(`
         CREATE TABLE IF NOT EXISTS appeals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             num INTEGER,
@@ -91,649 +91,714 @@ db.serialize(() => {
             source TEXT,
             employee TEXT
         )
-    `);
-});
+    `)
+})
 
 function getLineColor(workType) {
-    switch (workType) {
-        case 'Гос. задание':
-            return '#FF0000';
-        case 'Коммерция':
-            return '#ce31ff';
-        default:
-            return '#000000';
-    }
+	switch (workType) {
+		case 'Гос. задание':
+			return '#FF0000'
+		case 'Коммерция':
+			return '#ce31ff'
+		default:
+			return '#000000'
+	}
 }
 
 app.use((req, res, next) => {
-    res.locals.message = req.session.message;
-    delete req.session.message;
-    next();
-});
+	res.locals.message = req.session.message
+	delete req.session.message
+	next()
+})
 
 // Маршрут страницы логина
 app.get('/login', (req, res) => {
-    res.render('login');
-});
+	res.render('login')
+})
 
 // Маршрут страницы регистрации
 app.get('/register', (req, res) => {
-    res.render('register');
-});
+	res.render('register')
+})
 
 function checkAuth(req, res, next) {
-    if (req.session.user) {
-        const sessionId = req.sessionID;
-        db.get('SELECT * FROM sessions WHERE session_id = ? AND expires_at > ?', [sessionId, moment().format('YYYY-MM-DD HH:mm:ss')], (err, row) => {
-            if (err) {
-                console.error('Ошибка проверки сессии:', err);
-                req.session.message = {type: 'danger', text: 'Ошибка проверки сессии: ' + err.message};
-                res.redirect('/login');
-            } else if (!row) {
-                req.session.message = {type: 'danger', text: 'Сессия истекла, пожалуйста, войдите снова.'};
-                res.redirect('/login');
-            } else {
-                next();
-            }
-        });
-    } else {
-        req.session.message = {type: 'danger', text: 'Необходимо авторизоваться для доступа к этой странице'};
-        res.redirect('/login');
-    }
+	if (req.session.user) {
+		const sessionId = req.sessionID
+		db.get('SELECT * FROM sessions WHERE session_id = ? AND expires_at > ?', [sessionId, moment().format('YYYY-MM-DD HH:mm:ss')], (err, row) => {
+			if (err) {
+				console.error('Ошибка проверки сессии:', err)
+				req.session.message = { type: 'danger', text: 'Ошибка проверки сессии: ' + err.message }
+				res.redirect('/login')
+			} else if (!row) {
+				req.session.message = { type: 'danger', text: 'Сессия истекла, пожалуйста, войдите снова.' }
+				res.redirect('/login')
+			} else {
+				next()
+			}
+		})
+	} else {
+		req.session.message = { type: 'danger', text: 'Необходимо авторизоваться для доступа к этой странице' }
+		res.redirect('/login')
+	}
 }
 
 // Проверка доступа для всех маршрутов, кроме страниц авторизации
 app.use((req, res, next) => {
-    const publicPaths = ['/login', '/register', '/'];
-    if (!publicPaths.includes(req.path)) {
-        checkAuth(req, res, next);
-    } else {
-        next();
-    }
-});
+	const publicPaths = ['/login', '/register', '/']
+	if (!publicPaths.includes(req.path)) {
+		checkAuth(req, res, next)
+	} else {
+		next()
+	}
+})
 
 // Рендеринг различных страниц
 app.get('/', (req, res) => {
-    if (req.session.user) {
-        res.redirect('/dashboard');
-    } else {
-        res.redirect('/login');
-    }
-});
+	if (req.session.user) {
+		res.redirect('/dashboard')
+	} else {
+		res.redirect('/login')
+	}
+})
 
 app.get('/dashboard', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('dashboard', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('dashboard', { username })
+})
 
 app.get('/opashka-map', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('opashka-map', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('opashka-map', { username })
+})
 
 app.get('/appeals-map', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('appeals-map', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('appeals-map', { username })
+})
 
 app.get('/appeals-journal', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('appeals-journal', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('appeals-journal', { username })
+})
 
 app.get('/profile', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('profile', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('profile', { username })
+})
 
 app.get('/settings', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('settings', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('settings', { username })
+})
 
 app.get('/documents', (req, res) => {
-    const username = req.session.user ? req.session.user.username : '';
-    res.render('documents', {username});
-});
+	const username = req.session.user ? req.session.user.username : ''
+	res.render('documents', { username })
+})
 
 // Логаут пользователя
 app.get('/logout', (req, res) => {
-    const sessionId = req.sessionID;
-    db.run('DELETE FROM sessions WHERE session_id = ?', [sessionId], (err) => {
-        if (err) {
-            console.error('Ошибка удаления сессии:', err);
-        }
-        req.session.destroy();
-        res.redirect('/login');
-    });
-});
+	const sessionId = req.sessionID
+	db.run('DELETE FROM sessions WHERE session_id = ?', [sessionId], (err) => {
+		if (err) {
+			console.error('Ошибка удаления сессии:', err)
+		}
+		req.session.destroy()
+		res.redirect('/login')
+	})
+})
 
 // Регистрация пользователя
 app.post('/register', (req, res) => {
-    const {username, email, password} = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 8);
+	const { username, email, password } = req.body
+	const hashedPassword = bcrypt.hashSync(password, 8)
 
-    db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
-        if (row) {
-            req.session.message = {type: 'danger', text: 'Пользователь с таким email уже существует.'};
-            return res.redirect('/register');
-        }
+	db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+		if (row) {
+			req.session.message = { type: 'danger', text: 'Пользователь с таким email уже существует.' }
+			return res.redirect('/register')
+		}
 
-        db.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
-            if (err) {
-                console.error('Ошибка регистрации:', err);
-                req.session.message = {type: 'danger', text: 'Ошибка регистрации: ' + err.message};
-                return res.redirect('/register');
-            }
-            req.session.message = {type: 'success', text: 'Регистрация успешна. Теперь вы можете войти.'};
-            res.redirect('/login');
-        });
-    });
-});
+		db.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
+			if (err) {
+				console.error('Ошибка регистрации:', err)
+				req.session.message = { type: 'danger', text: 'Ошибка регистрации: ' + err.message }
+				return res.redirect('/register')
+			}
+			req.session.message = { type: 'success', text: 'Регистрация успешна. Теперь вы можете войти.' }
+			res.redirect('/login')
+		})
+	})
+})
 
 // Авторизация пользователя
 app.post('/login', (req, res) => {
-    const {identifier, password} = req.body;
+	const { identifier, password } = req.body
 
-    db.get('SELECT * FROM users WHERE email = ? OR username = ?', [identifier, identifier], (err, row) => {
-        if (err) {
-            console.error('Ошибка авторизации:', err);
-            req.session.message = {type: 'danger', text: 'Ошибка авторизации: ' + err.message};
-            return res.redirect('/login');
-        }
-        if (!row) {
-            req.session.message = {type: 'danger', text: 'Неверный email/логин или пароль'};
-            return res.redirect('/login');
-        }
-        if (!bcrypt.compareSync(password, row.password)) {
-            req.session.message = {type: 'danger', text: 'Неверный email/логин или пароль'};
-            return res.redirect('/login');
-        }
+	db.get('SELECT * FROM users WHERE email = ? OR username = ?', [identifier, identifier], (err, row) => {
+		if (err) {
+			console.error('Ошибка авторизации:', err)
+			req.session.message = { type: 'danger', text: 'Ошибка авторизации: ' + err.message }
+			return res.redirect('/login')
+		}
+		if (!row) {
+			req.session.message = { type: 'danger', text: 'Неверный email/логин или пароль' }
+			return res.redirect('/login')
+		}
+		if (!bcrypt.compareSync(password, row.password)) {
+			req.session.message = { type: 'danger', text: 'Неверный email/логин или пароль' }
+			return res.redirect('/login')
+		}
 
-        const sessionId = req.sessionID;
-        const createdAt = moment().format('YYYY-MM-DD HH:mm:ss');
-        const expiresAt = moment().add(3, 'hours').format('YYYY-MM-DD HH:mm:ss');
+		const sessionId = req.sessionID
+		const createdAt = moment().format('YYYY-MM-DD HH:mm:ss')
+		const expiresAt = moment().add(3, 'hours').format('YYYY-MM-DD HH:mm:ss')
 
-        db.run('INSERT INTO sessions (user_id, username, session_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?)', [row.id, row.username, sessionId, createdAt, expiresAt], (err) => {
-            if (err) {
-                console.error('Ошибка создания сессии:', err);
-                req.session.message = {type: 'danger', text: 'Ошибка создания сессии: ' + err.message};
-                return res.redirect('/login');
-            }
+		db.run('INSERT INTO sessions (user_id, username, session_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?)', [row.id, row.username, sessionId, createdAt, expiresAt], (err) => {
+			if (err) {
+				console.error('Ошибка создания сессии:', err)
+				req.session.message = { type: 'danger', text: 'Ошибка создания сессии: ' + err.message }
+				return res.redirect('/login')
+			}
 
-            req.session.user = {id: row.id, username: row.username};
-            req.session.message = {type: 'success', text: 'Вход выполнен успешно.'};
-            res.redirect('/dashboard');
-        });
-    });
-});
+			req.session.user = { id: row.id, username: row.username }
+			req.session.message = { type: 'success', text: 'Вход выполнен успешно.' }
+			res.redirect('/dashboard')
+		})
+	})
+})
 
 // Сохранение линии
 app.post('/save-line', (req, res) => {
-    const {
-        objects,
-        workType,
-        comment,
-        workAddress,
-        workVolume,
-        startDate,
-        endDate,
-        equipment,
-        equipmentCount,
-        distance
-    } = req.body;
-    const username = req.session.user.username;
-    const createdAt = moment().format('YYYY-MM-DD HH:mm:ss');
-    const lineColor = getLineColor(workType);
+	const {
+		objects,
+		workType,
+		comment,
+		workAddress,
+		workVolume,
+		startDate,
+		endDate,
+		equipment,
+		equipmentCount,
+		distance
+	} = req.body
+	const username = req.session.user.username
+	const createdAt = moment().format('YYYY-MM-DD HH:mm:ss')
+	const lineColor = getLineColor(workType)
 
-    const stmt = db.prepare('INSERT INTO lines (username, coordinates, work_type, comment, line_color, type, created_at, work_address, work_volume, start_date, end_date, equipment, equipment_count, distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+	const stmt = db.prepare('INSERT INTO lines (username, coordinates, work_type, comment, line_color, type, created_at, work_address, work_volume, start_date, end_date, equipment, equipment_count, distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
 
-    objects.forEach(obj => {
-        stmt.run(username, JSON.stringify(obj.coordinates), workType, comment, lineColor, obj.type, createdAt, workAddress, workVolume, startDate, endDate, equipment, equipmentCount, distance);
-    });
+	objects.forEach(obj => {
+		stmt.run(username, JSON.stringify(obj.coordinates), workType, comment, lineColor, obj.type, createdAt, workAddress, workVolume, startDate, endDate, equipment, equipmentCount, distance)
+	})
 
-    stmt.finalize((err) => {
-        if (err) {
-            console.error('Ошибка сохранения объектов:', err);
-            return res.json({success: false, message: 'Ошибка сохранения объектов: ' + err.message});
-        }
-        res.json({success: true, message: 'Объекты успешно сохранены.'});
-    });
-});
+	stmt.finalize((err) => {
+		if (err) {
+			console.error('Ошибка сохранения объектов:', err)
+			return res.json({ success: false, message: 'Ошибка сохранения объектов: ' + err.message })
+		}
+		res.json({ success: true, message: 'Объекты успешно сохранены.' })
+	})
+})
 
 // Получение линий
 app.get('/get-lines', (req, res) => {
-    const { workTypes, district } = req.query;
+	const { workTypes, district } = req.query
 
-    let query = 'SELECT * FROM lines';
-    let params = [];
+	let query = 'SELECT * FROM lines'
+	let params = []
 
-    if (workTypes && workTypes !== 'all') {
-        const typesArray = workTypes.split(',');
-        const placeholders = typesArray.map(() => '?').join(',');
-        query += ` WHERE work_type IN (${placeholders})`;
-        params = typesArray;
-    }
+	if (workTypes && workTypes !== 'all') {
+		const typesArray = workTypes.split(',')
+		const placeholders = typesArray.map(() => '?').join(',')
+		query += ` WHERE work_type IN (${placeholders})`
+		params = typesArray
+	}
 
-    if (district) {
-        query += params.length ? ' AND' : ' WHERE';
-        query += ' LOWER(work_address) = LOWER(?)';
-        params.push(district);
-    }
+	if (district) {
+		query += params.length ? ' AND' : ' WHERE'
+		query += ' LOWER(work_address) = LOWER(?)'
+		params.push(district)
+	}
 
-    db.all(query, params, (err, rows) => {
-        if (err) {
-            console.error('Ошибка получения линий:', err);
-            return res.json({ success: false, message: 'Ошибка получения линий: ' + err.message });
-        }
-        res.json({ success: true, lines: rows });
-    });
-});
+	db.all(query, params, (err, rows) => {
+		if (err) {
+			console.error('Ошибка получения линий:', err)
+			return res.json({ success: false, message: 'Ошибка получения линий: ' + err.message })
+		}
+		res.json({ success: true, lines: rows })
+	})
+})
 
 app.post('/update-line', (req, res) => {
-    const {
-        id,
-        workType,
-        comment,
-        coordinates,
-        lineColor,
-        type,
-        completed,
-        inProgress,
-        startDate, // Дата начала работы из запроса
-        endDate,
-        equipment,
-        equipmentCount
-    } = req.body;
+	const {
+		id,
+		workType,
+		comment,
+		coordinates,
+		lineColor,
+		type,
+		completed,
+		inProgress,
+		startDate, // Дата начала работы из запроса
+		endDate,
+		equipment,
+		equipmentCount
+	} = req.body
 
-    // Получаем текущую дату начала из базы данных, если она уже есть
-    db.get(`SELECT start_date FROM lines WHERE id = ?`, [id], (err, row) => {
-        if (err) {
-            console.error('Ошибка получения текущей даты начала:', err);
-            return res.json({success: false, message: 'Ошибка получения текущей даты начала: ' + err.message});
-        }
+	// Получаем текущую дату начала из базы данных, если она уже есть
+	db.get(`SELECT start_date FROM lines WHERE id = ?`, [id], (err, row) => {
+		if (err) {
+			console.error('Ошибка получения текущей даты начала:', err)
+			return res.json({ success: false, message: 'Ошибка получения текущей даты начала: ' + err.message })
+		}
 
-        // Если дата начала уже существует, сохраняем её, иначе используем новую дату
-        const finalStartDate = row && row.start_date ? row.start_date : startDate;
+		// Если дата начала уже существует, сохраняем её, иначе используем новую дату
+		const finalStartDate = row && row.start_date ? row.start_date : startDate
 
-        // Обновляем объект, включая неизменную дату начала, если она уже была сохранена
-        const query = `
+		// Обновляем объект, включая неизменную дату начала, если она уже была сохранена
+		const query = `
             UPDATE lines
             SET work_type = ?, comment = ?, coordinates = ?, line_color = ?, type = ?, completed = ?, in_progress = ?, start_date = ?, end_date = ?, equipment = ?, equipment_count = ?
             WHERE id = ?
-        `;
-        const params = [workType, comment, coordinates, lineColor, type, completed, inProgress, finalStartDate, endDate, equipment, equipmentCount, id];
+        `
+		const params = [workType, comment, coordinates, lineColor, type, completed, inProgress, finalStartDate, endDate, equipment, equipmentCount, id]
 
-        db.run(query, params, function (err) {
-            if (err) {
-                console.error('Ошибка обновления объекта:', err);
-                return res.json({success: false, message: 'Ошибка обновления объекта: ' + err.message});
-            }
-            res.json({success: true, message: 'Объект успешно обновлен.'});
-        });
-    });
-});
+		db.run(query, params, function(err) {
+			if (err) {
+				console.error('Ошибка обновления объекта:', err)
+				return res.json({ success: false, message: 'Ошибка обновления объекта: ' + err.message })
+			}
+			res.json({ success: true, message: 'Объект успешно обновлен.' })
+		})
+	})
+})
 
 // Удаление линии
 app.post('/delete-line', (req, res) => {
-    const {id} = req.body;
+	const { id } = req.body
 
-    const query = 'DELETE FROM lines WHERE id = ?';
-    const params = [id];
+	const query = 'DELETE FROM lines WHERE id = ?'
+	const params = [id]
 
-    db.run(query, params, function (err) {
-        if (err) {
-            console.error('Ошибка удаления объекта:', err);
-            return res.json({success: false, message: 'Ошибка удаления объекта: ' + err.message});
-        }
-        res.json({success: true, message: 'Объект успешно удален.'});
-    });
-});
+	db.run(query, params, function(err) {
+		if (err) {
+			console.error('Ошибка удаления объекта:', err)
+			return res.json({ success: false, message: 'Ошибка удаления объекта: ' + err.message })
+		}
+		res.json({ success: true, message: 'Объект успешно удален.' })
+	})
+})
 
 // Создаем директорию для хранения фотографий, если она не существует
 if (!fs.existsSync('./uploads')) {
-    fs.mkdirSync('./uploads');
+	fs.mkdirSync('./uploads')
 }
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './uploads');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `${req.body.objectId}-${uniqueSuffix}-${file.originalname}`);
-    }
-});
+	destination: (req, file, cb) => {
+		cb(null, './uploads')
+	},
+	filename: (req, file, cb) => {
+		const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+		cb(null, `${req.body.objectId}-${uniqueSuffix}-${file.originalname}`)
+	}
+})
 
-const upload = multer({storage: storage});
+const upload = multer({ storage: storage })
 
 // Маршрут для загрузки фотографий
 app.post('/upload-photo', upload.single('photo'), (req, res) => {
-    const {objectId} = req.body;
+	const { objectId } = req.body
 
-    if (!objectId || !req.file) {
-        return res.json({success: false, message: 'Объект не найден или файл не загружен.'});
-    }
+	if (!objectId || !req.file) {
+		return res.json({ success: false, message: 'Объект не найден или файл не загружен.' })
+	}
 
-    const photoPath = `/uploads/${req.file.filename}`;  // путь к файлу
+	const photoPath = `/uploads/${req.file.filename}`  // путь к файлу
 
-    db.run('UPDATE lines SET photo = ? WHERE id = ?', [photoPath, objectId], (err) => {
-        if (err) {
-            console.error('Ошибка при обновлении фото для объекта:', err);
-            return res.json({success: false, message: 'Ошибка при обновлении фото: ' + err.message});
-        }
-        res.json({success: true, message: 'Фото успешно загружено и привязано к объекту.', photoPath});
-    });
-});
+	db.run('UPDATE lines SET photo = ? WHERE id = ?', [photoPath, objectId], (err) => {
+		if (err) {
+			console.error('Ошибка при обновлении фото для объекта:', err)
+			return res.json({ success: false, message: 'Ошибка при обновлении фото: ' + err.message })
+		}
+		res.json({ success: true, message: 'Фото успешно загружено и привязано к объекту.', photoPath })
+	})
+})
 
 app.post('/delete-photo', (req, res) => {
-    const {objectId} = req.body;
+	const { objectId } = req.body
 
-    if (!objectId) {
-        return res.json({success: false, message: 'Объект не найден.'});
-    }
+	if (!objectId) {
+		return res.json({ success: false, message: 'Объект не найден.' })
+	}
 
-    // Получаем текущий путь к фото из базы данных
-    db.get('SELECT photo FROM lines WHERE id = ?', [objectId], (err, row) => {
-        if (err) {
-            console.error('Ошибка при получении пути к фото:', err);
-            return res.json({success: false, message: 'Ошибка при получении пути к фото.'});
-        }
+	// Получаем текущий путь к фото из базы данных
+	db.get('SELECT photo FROM lines WHERE id = ?', [objectId], (err, row) => {
+		if (err) {
+			console.error('Ошибка при получении пути к фото:', err)
+			return res.json({ success: false, message: 'Ошибка при получении пути к фото.' })
+		}
 
-        if (row && row.photo) {
-            const photoPath = path.join(__dirname, row.photo);
+		if (row && row.photo) {
+			const photoPath = path.join(__dirname, row.photo)
 
-            // Удаляем фото файл, если он существует
-            fs.unlink(photoPath, (err) => {
-                if (err) {
-                    console.error('Ошибка при удалении файла фото:', err);
-                    return res.json({success: false, message: 'Ошибка при удалении файла фото.'});
-                }
+			// Удаляем фото файл, если он существует
+			fs.unlink(photoPath, (err) => {
+				if (err) {
+					console.error('Ошибка при удалении файла фото:', err)
+					return res.json({ success: false, message: 'Ошибка при удалении файла фото.' })
+				}
 
-                // Обновляем базу данных, удаляя путь к фото
-                db.run('UPDATE lines SET photo = NULL WHERE id = ?', [objectId], (err) => {
-                    if (err) {
-                        console.error('Ошибка при обновлении записи в базе данных:', err);
-                        return res.json({success: false, message: 'Ошибка при обновлении записи в базе данных.'});
-                    }
-                    res.json({success: true, message: 'Фото успешно удалено.'});
-                });
-            });
-        } else {
-            res.json({success: false, message: 'Фото для удаления не найдено.'});
-        }
-    });
-});
+				// Обновляем базу данных, удаляя путь к фото
+				db.run('UPDATE lines SET photo = NULL WHERE id = ?', [objectId], (err) => {
+					if (err) {
+						console.error('Ошибка при обновлении записи в базе данных:', err)
+						return res.json({ success: false, message: 'Ошибка при обновлении записи в базе данных.' })
+					}
+					res.json({ success: true, message: 'Фото успешно удалено.' })
+				})
+			})
+		} else {
+			res.json({ success: false, message: 'Фото для удаления не найдено.' })
+		}
+	})
+})
 
 // Маршрут для фильтрации по району
 app.get('/filter-district', (req, res) => {
-    const { district } = req.query;
+	const { district } = req.query
 
-    if (!district) {
-        return res.status(400).json({ success: false, message: 'Не указан район для фильтрации' });
-    }
+	if (!district) {
+		return res.status(400).json({ success: false, message: 'Не указан район для фильтрации' })
+	}
 
-    // Фильтрация данных по work_address без учета регистра
-    const query = `SELECT * FROM lines WHERE LOWER(work_address) = LOWER(?)`;
+	// Фильтрация данных по work_address без учета регистра
+	const query = `SELECT * FROM lines WHERE LOWER(work_address) = LOWER(?)`
 
-    db.all(query, [district], (err, rows) => {
-        if (err) {
-            console.error('Ошибка фильтрации данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
-        }
+	db.all(query, [district], (err, rows) => {
+		if (err) {
+			console.error('Ошибка фильтрации данных:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' })
+		}
 
-        res.json({ success: true, data: rows });
-    });
-});
+		res.json({ success: true, data: rows })
+	})
+})
 
 // Исправлен маршрут для сохранения данных с проверкой дат и добавлением сортировки
 app.post('/save-table-data', (req, res) => {
-    const { data } = req.body;
+	const { data } = req.body
 
-    const stmt = db.prepare(`
+	const stmt = db.prepare(`
         INSERT INTO appeals 
         (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    `)
 
-    data.forEach(row => {
-        const excelDateToJSDate = (excelDate) => {
-            const date = new Date(0);
-            date.setUTCDate(excelDate - 25567);
-            return date.toISOString().split('T')[0];
-        };
+	data.forEach(row => {
+		const excelDateToJSDate = (excelDate) => {
+			const date = new Date(0)
+			date.setUTCDate(excelDate - 25567)
+			return date.toISOString().split('T')[0]
+		}
 
-        const formattedDate = !isNaN(row[1]) && typeof row[1] === 'number'
-            ? excelDateToJSDate(row[1])
-            : row[1];
+		const formattedDate = !isNaN(row[1]) && typeof row[1] === 'number'
+			? excelDateToJSDate(row[1])
+			: row[1]
 
-        if (formattedDate && row.every(cell => cell !== null && cell !== undefined && cell !== '')) {
-            stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]);
-        }
-    });
+		if (formattedDate && row.every(cell => cell !== null && cell !== undefined && cell !== '')) {
+			stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10])
+		}
+	})
 
-    stmt.finalize((err) => {
-        if (err) {
-            console.error('Ошибка сохранения данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка сохранения данных' });
-        }
-        res.json({ success: true, message: 'Данные успешно сохранены.' });
-    });
-});
+	stmt.finalize((err) => {
+		if (err) {
+			console.error('Ошибка сохранения данных:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка сохранения данных' })
+		}
+		res.json({ success: true, message: 'Данные успешно сохранены.' })
+	})
+})
 
 app.get('/get-appeals-part', (req, res) => {
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 20;
+	const offset = parseInt(req.query.offset) || 0
+	const limit = parseInt(req.query.limit) || 20
 
-    const sqlQuery = `
+	const sqlQuery = `
         SELECT * FROM appeals
         ORDER BY CAST(num AS INTEGER) DESC
         LIMIT ? OFFSET ?
-    `;
+    `
 
-    db.all(sqlQuery, [limit, offset], (err, rows) => {
-        if (err) {
-            console.error('Ошибка загрузки данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка загрузки данных' });
-        }
+	db.all(sqlQuery, [limit, offset], (err, rows) => {
+		if (err) {
+			console.error('Ошибка загрузки данных:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка загрузки данных' })
+		}
 
-        res.json({ success: true, data: rows });
-    });
-});
+		res.json({ success: true, data: rows })
+	})
+})
 
 
 app.post('/update-appeal', (req, res) => {
-    const {
-        num,
-        date,
-        card_number,
-        settlement,
-        address,
-        coordinates,
-        topic,
-        measures,
-        status,
-        source,
-        employee,
-    } = req.body;
+	const {
+		num,
+		date,
+		card_number,
+		settlement,
+		address,
+		coordinates,
+		topic,
+		measures,
+		status,
+		source,
+		employee
+	} = req.body
 
-    const query = `
+	const query = `
         UPDATE appeals
         SET date = ?, card_number = ?, settlement = ?, address = ?, coordinates = ?, topic = ?, measures = ?, status = ?, source = ?, employee = ?
         WHERE num = ?
-    `;
+    `
 
-    db.run(
-        query,
-        [date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, num],
-        function (err) {
-            if (err) {
-                console.error('Ошибка обновления данных:', err);
-                return res.json({ success: false, message: 'Ошибка обновления данных' });
-            }
-            res.json({ success: true, message: 'Данные успешно обновлены' });
-        }
-    );
-});
+	db.run(
+		query,
+		[date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, num],
+		function(err) {
+			if (err) {
+				console.error('Ошибка обновления данных:', err)
+				return res.json({ success: false, message: 'Ошибка обновления данных' })
+			}
+			res.json({ success: true, message: 'Данные успешно обновлены' })
+		}
+	)
+})
 
 app.get('/get-next-appeal-number', (req, res) => {
-    const query = `SELECT MAX(num) AS maxNum FROM appeals`;
+	const query = `SELECT MAX(num) AS maxNum FROM appeals`
 
-    db.get(query, [], (err, row) => {
-        if (err) {
-            console.error('Ошибка получения последнего номера обращения:', err);
-            return res.json({ success: false, message: 'Ошибка получения последнего номера обращения' });
-        }
+	db.get(query, [], (err, row) => {
+		if (err) {
+			console.error('Ошибка получения последнего номера обращения:', err)
+			return res.json({ success: false, message: 'Ошибка получения последнего номера обращения' })
+		}
 
-        const nextNum = row && row.maxNum ? row.maxNum + 1 : 1;
-        res.json({ success: true, nextNum });
-    });
-});
+		const nextNum = row && row.maxNum ? row.maxNum + 1 : 1
+		res.json({ success: true, nextNum })
+	})
+})
 
 
 app.post('/add-appeal', (req, res) => {
-    const {
-        num,
-        date,
-        card_number,
-        settlement,
-        address,
-        coordinates,
-        topic,
-        measures,
-        status,
-        source,
-        employee,
-    } = req.body;
+	const {
+		num,
+		date,
+		card_number,
+		settlement,
+		address,
+		coordinates,
+		topic,
+		measures,
+		status,
+		source,
+		employee
+	} = req.body
 
-    const query = `
+	const query = `
         INSERT INTO appeals (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    `
 
-    db.run(query, [num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee], function (err) {
-        if (err) {
-            console.error('Ошибка добавления нового обращения:', err);
-            return res.json({ success: false, message: 'Ошибка добавления нового обращения' });
-        }
+	db.run(query, [num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee], function(err) {
+		if (err) {
+			console.error('Ошибка добавления нового обращения:', err)
+			return res.json({ success: false, message: 'Ошибка добавления нового обращения' })
+		}
 
-        res.json({ success: true, message: 'Новое обращение успешно добавлено' });
-    });
-});
+		res.json({ success: true, message: 'Новое обращение успешно добавлено' })
+	})
+})
 
 app.post('/delete-appeal', (req, res) => {
-    const { num } = req.body;
+	const { num } = req.body
 
-    if (!num) {
-        return res.status(400).json({ success: false, message: 'Номер обращения отсутствует.' });
-    }
+	if (!num) {
+		return res.status(400).json({ success: false, message: 'Номер обращения отсутствует.' })
+	}
 
-    const query = `DELETE FROM appeals WHERE num = ?`;
+	const query = `DELETE FROM appeals WHERE num = ?`
 
-    db.run(query, [num], function (err) {
-        if (err) {
-            console.error('Ошибка удаления обращения:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка удаления обращения' });
-        }
+	db.run(query, [num], function(err) {
+		if (err) {
+			console.error('Ошибка удаления обращения:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка удаления обращения' })
+		}
 
-        if (this.changes === 0) {
-            return res.status(404).json({ success: false, message: 'Обращение не найдено.' });
-        }
+		if (this.changes === 0) {
+			return res.status(404).json({ success: false, message: 'Обращение не найдено.' })
+		}
 
-        res.json({ success: true, message: 'Обращение успешно удалено' });
-    });
-});
+		res.json({ success: true, message: 'Обращение успешно удалено' })
+	})
+})
 
 app.get('/search-appeals', (req, res) => {
-    const query = req.query.query || '';
-    const column = req.query.column || 'num';
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 20;
-    const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee'];
+	const query = req.query.query || ''
+	const column = req.query.column || 'num'
+	const offset = parseInt(req.query.offset) || 0
+	const limit = parseInt(req.query.limit) || 20
+	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee']
 
-    if (!validColumns.includes(column)) {
-        return res.status(400).json({success: false, message: 'Неверный столбец для поиска'});
-    }
+	if (!validColumns.includes(column)) {
+		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' })
+	}
 
-    const sqlQuery = `
+	const sqlQuery = `
         SELECT * FROM appeals
         WHERE LOWER(${column}) LIKE LOWER(?) 
         LIMIT ? OFFSET ?
-    `;
-    const params = [`%${query}%`, limit, offset];
+    `
+	const params = [`%${query}%`, limit, offset]
 
-    db.all(sqlQuery, params, (err, rows) => {
-        if (err) {
-            console.error('Ошибка поиска:', err);
-            return res.status(500).json({success: false, message: 'Ошибка поиска данных'});
-        }
+	db.all(sqlQuery, params, (err, rows) => {
+		if (err) {
+			console.error('Ошибка поиска:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка поиска данных' })
+		}
 
-        // Подсчет общего количества строк для поискового запроса
-        const countQuery = `
+		// Подсчет общего количества строк для поискового запроса
+		const countQuery = `
             SELECT COUNT(*) as total FROM appeals
             WHERE LOWER(${column}) LIKE LOWER(?)
-        `;
-        db.get(countQuery, [`%${query}%`], (countErr, countResult) => {
-            if (countErr) {
-                console.error('Ошибка подсчета:', countErr);
-                return res.status(500).json({success: false, message: 'Ошибка подсчета данных'});
-            }
+        `
+		db.get(countQuery, [`%${query}%`], (countErr, countResult) => {
+			if (countErr) {
+				console.error('Ошибка подсчета:', countErr)
+				return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' })
+			}
 
-            res.json({success: true, data: rows, total: countResult.total});
-        });
-    });
-});
-
+			res.json({ success: true, data: rows, total: countResult.total })
+		})
+	})
+})
 
 app.get('/get-appeals', (req, res) => {
-    const query = 'SELECT num, date, card_number, coordinates, topic, address, status, source, employee FROM appeals';
+	const query = 'SELECT num, date, card_number, coordinates, topic, address, status, source, employee FROM appeals'
 
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error('Ошибка получения обращений:', err);
-            return res.json({ success: false, message: 'Ошибка получения обращений' });
-        }
+	db.all(query, [], (err, rows) => {
+		if (err) {
+			console.error('Ошибка получения обращений:', err)
+			return res.json({ success: false, message: 'Ошибка получения обращений' })
+		}
 
-        const appeals = rows.map(row => ({
-            id: row.num,
-            date: row.date,
-            card_number: row.card_number,
-            coordinates: row.coordinates,
-            topic: row.topic,
-            address: row.address,
-            status: row.status,
-            source: row.source,
-            employee: row.employee
-        }));
+		const appeals = rows.map(row => ({
+			id: row.num,
+			date: row.date,
+			card_number: row.card_number,
+			coordinates: row.coordinates,
+			topic: row.topic,
+			address: row.address,
+			status: row.status,
+			source: row.source,
+			employee: row.employee
+		}))
 
-        res.json({ success: true, appeals });
-    });
-});
+		res.json({ success: true, appeals })
+	})
+})
 
 app.get('/filter-appeals-by-date', (req, res) => {
-    const { startDate, endDate } = req.query;
+	const { startDate, endDate } = req.query
 
-    if (!startDate || !endDate) {
-        return res.status(400).json({ success: false, message: 'Не указаны даты для фильтрации' });
-    }
+	if (!startDate || !endDate) {
+		return res.status(400).json({ success: false, message: 'Не указаны даты для фильтрации' })
+	}
 
-    const query = `
+	const query = `
         SELECT * FROM appeals
         WHERE strftime('%Y-%m-%d', substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2))
         BETWEEN strftime('%Y-%m-%d', ?) AND strftime('%Y-%m-%d', ?)
-    `;
+    `
 
-    db.all(query, [startDate, endDate], (err, rows) => {
-        if (err) {
-            console.error('Ошибка фильтрации данных:', err);
-            return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
-        }
+	db.all(query, [startDate, endDate], (err, rows) => {
+		if (err) {
+			console.error('Ошибка фильтрации данных:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' })
+		}
 
-        res.json({ success: true, data: rows });
-    });
-});
+		res.json({ success: true, data: rows })
+	})
+})
 
-const PORT = process.env.PORT || 3000;
+app.get('/latest-appeals', (req, res) => {
+	const limit = 5 // Количество записей для возврата
+	const query = `
+        SELECT num, date, card_number, settlement, coordinates, topic, address, status, source, employee 
+        FROM appeals 
+        ORDER BY CAST(num AS INTEGER) DESC 
+        LIMIT ?
+    `
+
+	db.all(query, [limit], (err, rows) => {
+		if (err) {
+			console.error('Ошибка получения последних обращений:', err)
+			return res.json({ success: false, message: 'Ошибка получения обращений' })
+		}
+
+		res.json({ success: true, appeals: rows })
+	})
+})
+
+app.get('/chart-data', (req, res) => {
+	const thirtyDaysAgo = moment().subtract(30, 'days').format('YYYY-MM-DD') // Дата 30 дней назад
+	const today = moment().format('YYYY-MM-DD') // Текущая дата
+
+	const totalQuery = `SELECT COUNT(num) AS total FROM appeals`
+	const last30DaysQuery = `
+        SELECT date, COUNT(*) AS count
+        FROM appeals
+        WHERE date(substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2)) BETWEEN ? AND ?
+        GROUP BY date
+        ORDER BY substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2) ASC
+    `
+	const settlementsQuery = `
+        SELECT settlement, COUNT(*) AS count
+        FROM appeals
+        GROUP BY settlement
+        ORDER BY count DESC
+    `
+
+	db.get(totalQuery, [], (err, totalRow) => {
+		if (err) return res.status(500).json({ success: false, message: 'Ошибка подсчета общего количества' })
+
+		db.all(last30DaysQuery, [thirtyDaysAgo, today], (err, rows) => {
+			if (err) return res.status(500).json({ success: false, message: 'Ошибка получения данных' })
+
+			db.all(settlementsQuery, [], (err, settlementRows) => {
+				if (err) return res.status(500).json({
+					success: false,
+					message: 'Ошибка получения данных по поселениям'
+				})
+
+				const settlements = {
+					labels: settlementRows.map(row => row.settlement),
+					counts: settlementRows.map(row => row.count)
+				}
+
+				const total = totalRow.total
+				const monthlyTotal = rows.reduce((sum, row) => sum + row.count, 0)
+				const labels = rows.map(row => row.date.substr(0, 5))
+				const data = rows.map(row => row.count)
+
+				res.json({ success: true, total, monthlyTotal, labels, data, settlements })
+			})
+		})
+	})
+})
+
+const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+	console.log(`Server is running on http://localhost:${PORT}`)
+})

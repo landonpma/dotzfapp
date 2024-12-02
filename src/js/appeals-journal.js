@@ -245,7 +245,6 @@ $(document).ready(function() {
 	}
 
 	window.exportTableToExcel = exportTableToExcel
-	window.importTableFromExcel = importTableFromExcel
 	window.downloadTemplate = downloadTemplate
 
 
