@@ -465,6 +465,29 @@ app.post('/delete-photo', (req, res) => {
 	})
 })
 
+app.get('/lines-statistics', (req, res) => {
+	const statsQuery = `
+        SELECT 
+            SUM(in_progress = 1) AS inProgressCount,
+            SUM(completed = 1) AS completedCount,
+            SUM(in_progress = 0 AND completed = 0) AS remainingCount
+        FROM lines;
+    `
+
+	db.get(statsQuery, [], (err, row) => {
+		if (err) {
+			console.error('Ошибка подсчета объектов:', err)
+			return res.json({ success: false, message: 'Ошибка подсчета объектов' })
+		}
+		res.json({
+			success: true,
+			inProgress: row.inProgressCount,
+			completed: row.completedCount,
+			remaining: row.remainingCount
+		})
+	})
+})
+
 // Маршрут для фильтрации по району
 app.get('/filter-district', (req, res) => {
 	const { district } = req.query
@@ -647,19 +670,22 @@ app.post('/delete-appeal', (req, res) => {
 app.get('/search-appeals', (req, res) => {
 	const query = req.query.query || ''
 	const column = req.query.column || 'num'
-	const offset = parseInt(req.query.offset) || 0
-	const limit = parseInt(req.query.limit) || 20
-	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee']
+	const offset = parseInt(req.query.offset, 10) || 0
+	const limit = parseInt(req.query.limit, 10) || 20
 
+	// Разрешенные столбцы для поиска
+	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee']
 	if (!validColumns.includes(column)) {
 		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' })
 	}
 
+	// Подготовка SQL-запроса с независимостью от регистра и сортировкой
 	const sqlQuery = `
         SELECT * FROM appeals
-        WHERE LOWER(${column}) LIKE LOWER(?) 
-        LIMIT ? OFFSET ?
-    `
+        WHERE LOWER(${column}) LIKE LOWER(?)
+        ORDER BY num DESC
+        LIMIT ? OFFSET ?`
+
 	const params = [`%${query}%`, limit, offset]
 
 	db.all(sqlQuery, params, (err, rows) => {
@@ -668,11 +694,11 @@ app.get('/search-appeals', (req, res) => {
 			return res.status(500).json({ success: false, message: 'Ошибка поиска данных' })
 		}
 
-		// Подсчет общего количества строк для поискового запроса
+		// Подсчет общего количества строк
 		const countQuery = `
             SELECT COUNT(*) as total FROM appeals
-            WHERE LOWER(${column}) LIKE LOWER(?)
-        `
+            WHERE LOWER(${column}) LIKE LOWER(?)`
+
 		db.get(countQuery, [`%${query}%`], (countErr, countResult) => {
 			if (countErr) {
 				console.error('Ошибка подсчета:', countErr)
@@ -684,8 +710,12 @@ app.get('/search-appeals', (req, res) => {
 	})
 })
 
+
 app.get('/get-appeals', (req, res) => {
-	const query = 'SELECT num, date, card_number, coordinates, topic, address, status, source, employee FROM appeals'
+	const query = 'SELECT * FROM appeals'
+	const countQuery = 'SELECT COUNT(*) as total FROM appeals'
+	const completedQuery = 'SELECT COUNT(*) as completed FROM appeals WHERE status = \'Опубликован\''
+	const inProgressQuery = 'SELECT COUNT(*) as inProgress FROM appeals WHERE status != \'Опубликован\''
 
 	db.all(query, [], (err, rows) => {
 		if (err) {
@@ -693,44 +723,95 @@ app.get('/get-appeals', (req, res) => {
 			return res.json({ success: false, message: 'Ошибка получения обращений' })
 		}
 
-		const appeals = rows.map(row => ({
-			id: row.num,
-			date: row.date,
-			card_number: row.card_number,
-			coordinates: row.coordinates,
-			topic: row.topic,
-			address: row.address,
-			status: row.status,
-			source: row.source,
-			employee: row.employee
-		}))
+		db.get(countQuery, [], (err, countResult) => {
+			if (err) {
+				console.error('Ошибка подсчета всех обращений:', err)
+				return res.json({ success: false, message: 'Ошибка подсчета всех обращений' })
+			}
 
-		res.json({ success: true, appeals })
+			db.get(completedQuery, [], (err, completedResult) => {
+				if (err) {
+					console.error('Ошибка подсчета выполненных обращений:', err)
+					return res.json({ success: false, message: 'Ошибка подсчета выполненных обращений' })
+				}
+
+				db.get(inProgressQuery, [], (err, inProgressResult) => {
+					if (err) {
+						console.error('Ошибка подсчета обращений в работе:', err)
+						return res.json({ success: false, message: 'Ошибка подсчета обращений в работе' })
+					}
+
+					// Проверяем, есть ли данные
+					if (!rows || rows.length === 0) {
+						return res.json({
+							success: true,
+							appeals: [],
+							total: 0,
+							completed: 0,
+							inProgress: 0
+						})
+					}
+
+					const appeals = rows.map(row => ({
+						id: row.id,
+						num: row.num,
+						date: row.date,
+						card_number: row.card_number,
+						settlement: row.settlement,
+						address: row.address,
+						coordinates: row.coordinates,
+						topic: row.topic,
+						measures: row.measures,
+						status: row.status,
+						source: row.source,
+						employee: row.employee
+					}))
+
+					res.json({
+						success: true,
+						appeals,
+						total: countResult.total,
+						completed: completedResult.completed,
+						inProgress: inProgressResult.inProgress
+					})
+				})
+			})
+		})
 	})
 })
 
-app.get('/filter-appeals-by-date', (req, res) => {
-	const { startDate, endDate } = req.query
+app.get('/filter-appeals', (req, res) => {
+	const { startDate, endDate, status, districts } = req.query;
 
-	if (!startDate || !endDate) {
-		return res.status(400).json({ success: false, message: 'Не указаны даты для фильтрации' })
+	// Базовый запрос
+	let query = 'SELECT * FROM appeals WHERE 1=1';
+	const params = [];
+
+	if (startDate && endDate) {
+		query += ' AND date BETWEEN ? AND ?';
+		params.push(startDate, endDate);
 	}
 
-	const query = `
-        SELECT * FROM appeals
-        WHERE strftime('%Y-%m-%d', substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2))
-        BETWEEN strftime('%Y-%m-%d', ?) AND strftime('%Y-%m-%d', ?)
-    `
+	if (status) {
+		query += ' AND status = ?';
+		params.push(status);
+	}
 
-	db.all(query, [startDate, endDate], (err, rows) => {
+	if (districts) {
+		const districtsArray = districts.split(',');
+		query += ` AND district IN (${districtsArray.map(() => '?').join(',')})`;
+		params.push(...districtsArray);
+	}
+
+	db.all(query, params, (err, rows) => {
 		if (err) {
-			console.error('Ошибка фильтрации данных:', err)
-			return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' })
+			console.error('Ошибка фильтрации данных:', err);
+			return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
 		}
 
-		res.json({ success: true, data: rows })
-	})
-})
+		res.json({ success: true, appeals: rows }); // Возвращаем поле `appeals`, как ожидает клиент
+	});
+});
 
 app.get('/latest-appeals', (req, res) => {
 	const limit = 5 // Количество записей для возврата
@@ -752,17 +833,17 @@ app.get('/latest-appeals', (req, res) => {
 })
 
 app.get('/chart-data', (req, res) => {
-	const thirtyDaysAgo = moment().subtract(30, 'days').format('YYYY-MM-DD') // Дата 30 дней назад
-	const today = moment().format('YYYY-MM-DD') // Текущая дата
+	const startDate = '2024-10-01'
+	const endDate = '2024-12-31'
 
-	const totalQuery = `SELECT COUNT(num) AS total FROM appeals`
-	const last30DaysQuery = `
+	const monthlyQuery = `
         SELECT date, COUNT(*) AS count
         FROM appeals
-        WHERE date(substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2)) BETWEEN ? AND ?
+        WHERE date BETWEEN ? AND ?
         GROUP BY date
-        ORDER BY substr(date, 7, 4) || '-' || substr(date, 4, 2) || '-' || substr(date, 1, 2) ASC
+        ORDER BY date ASC
     `
+
 	const settlementsQuery = `
         SELECT settlement, COUNT(*) AS count
         FROM appeals
@@ -770,29 +851,43 @@ app.get('/chart-data', (req, res) => {
         ORDER BY count DESC
     `
 
-	db.get(totalQuery, [], (err, totalRow) => {
-		if (err) return res.status(500).json({ success: false, message: 'Ошибка подсчета общего количества' })
+	db.all(monthlyQuery, [startDate, endDate], (err, rows) => {
+		if (err) {
+			console.error('Ошибка получения данных по датам:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка получения данных по датам' })
+		}
 
-		db.all(last30DaysQuery, [thirtyDaysAgo, today], (err, rows) => {
-			if (err) return res.status(500).json({ success: false, message: 'Ошибка получения данных' })
+		db.all(settlementsQuery, [], (errSettlements, settlementRows) => {
+			if (errSettlements) {
+				console.error('Ошибка получения данных по поселениям:', errSettlements)
+				return res.status(500).json({ success: false, message: 'Ошибка получения данных по поселениям' })
+			}
 
-			db.all(settlementsQuery, [], (err, settlementRows) => {
-				if (err) return res.status(500).json({
-					success: false,
-					message: 'Ошибка получения данных по поселениям'
-				})
+			// Разделение данных по месяцам
+			const splitByMonth = (rows, month) => {
+				return rows.filter(row => new Date(row.date).getMonth() + 1 === month)
+			}
 
-				const settlements = {
+			const formatData = (rows) => {
+				return {
+					labels: rows.map(row => `${new Date(row.date).getDate()}`), // Только дни
+					counts: rows.map(row => row.count)
+				}
+			}
+
+			const octoberData = formatData(splitByMonth(rows, 10))
+			const novemberData = formatData(splitByMonth(rows, 11))
+			const decemberData = formatData(splitByMonth(rows, 12))
+
+			res.json({
+				success: true,
+				october: octoberData,
+				november: novemberData,
+				december: decemberData,
+				settlements: {
 					labels: settlementRows.map(row => row.settlement),
 					counts: settlementRows.map(row => row.count)
 				}
-
-				const total = totalRow.total
-				const monthlyTotal = rows.reduce((sum, row) => sum + row.count, 0)
-				const labels = rows.map(row => row.date.substr(0, 5))
-				const data = rows.map(row => row.count)
-
-				res.json({ success: true, total, monthlyTotal, labels, data, settlements })
 			})
 		})
 	})

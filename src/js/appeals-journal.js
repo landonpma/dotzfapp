@@ -235,18 +235,7 @@ $(document).ready(function() {
 		reader.readAsBinaryString(file)
 	}
 
-
-	function downloadTemplate() {
-		const link = document.createElement('a')
-		link.href = '/path/to/your/template.xlsx'
-		link.download = 'Шаблон_для_загрузки.xlsx'
-		link.click()
-		toastr.info('Шаблон скачан')
-	}
-
 	window.exportTableToExcel = exportTableToExcel
-	window.downloadTemplate = downloadTemplate
-
 
 	$('#edit-button').on('click', function() {
 		// Заполнить форму редактирования текущими данными
@@ -354,6 +343,7 @@ $(document).ready(function() {
 			})
 	})
 
+	let appealToDelete = null // Переменная для хранения номера обращения
 
 	// Кнопка "Добавить"
 	$('#add-button').on('click', function() {
@@ -391,7 +381,7 @@ $(document).ready(function() {
 	$('#save-add-button').on('click', function() {
 		const newData = {
 			num: $('#add-num').val(),
-			date: $('#add-date').val(),
+			date: ($('#add-date').val()), // Преобразование даты
 			card_number: $('#add-card-number').val(),
 			settlement: $('#add-settlement').val(),
 			address: $('#add-address').val(),
@@ -408,6 +398,7 @@ $(document).ready(function() {
 			toastr.error('Ошибка: Некорректный формат координат. Используйте формат "latitude,longitude".')
 			return
 		}
+
 
 		fetch('/add-appeal', {
 			method: 'POST',
@@ -432,9 +423,7 @@ $(document).ready(function() {
 	})
 
 
-	let appealToDelete = null // Переменная для хранения номера обращения
-
-// Обработчик кнопки "Удалить" в модальном окне "Детальная информация"
+	// Обработчик кнопки "Удалить" в модальном окне "Детальная информация"
 	$('#delete-button').on('click', function() {
 		appealToDelete = $('#modal-num').text() // Получить номер обращения из модального окна
 
@@ -490,46 +479,46 @@ function isValidCoordinates(coordinates) {
 	return regex.test(coordinates.trim())
 }
 
-let map, placemark, targetInput;
+let map, placemark, targetInput
 
 function initMap() {
-	map = new ymaps.Map("map", {
+	map = new ymaps.Map('map', {
 		center: [55.39, 37.33],
-		zoom: 9,
-	});
+		zoom: 9
+	})
 
 
 	// Событие клика на карте
-	map.events.add('click', function (e) {
-		const coords = e.get('coords');
+	map.events.add('click', function(e) {
+		const coords = e.get('coords')
 
 		// Если метка уже существует, обновить её координаты
 		if (placemark) {
-			placemark.geometry.setCoordinates(coords);
+			placemark.geometry.setCoordinates(coords)
 		} else {
 			// Если метки нет, создать новую
-			placemark = new ymaps.Placemark(coords, {}, { draggable: true });
-			map.geoObjects.add(placemark);
+			placemark = new ymaps.Placemark(coords, {}, { draggable: true })
+			map.geoObjects.add(placemark)
 		}
 
 		// Обновить координаты в поле
 		if (targetInput) {
-			targetInput.value = coords.map(coord => coord.toFixed(6)).join(',');
+			targetInput.value = coords.map(coord => coord.toFixed(6)).join(',')
 		}
-	});
+	})
 }
 
 function toggleMap(inputId) {
-	const mapContainer = document.getElementById('map'); // Контейнер для карты
-	targetInput = document.getElementById(inputId); // Поле для ввода координат
+	const mapContainer = document.getElementById('map') // Контейнер для карты
+	targetInput = document.getElementById(inputId) // Поле для ввода координат
 
 	// Показать или скрыть карту
 	if (mapContainer.style.display === 'block') {
-		mapContainer.style.display = 'none'; // Скрыть карту
+		mapContainer.style.display = 'none' // Скрыть карту
 	} else {
-		mapContainer.style.display = 'block'; // Показать карту
+		mapContainer.style.display = 'block' // Показать карту
 		if (!map) {
-			ymaps.ready(initMap); // Инициализировать карту, если она ещё не была создана
+			ymaps.ready(initMap) // Инициализировать карту, если она ещё не была создана
 		}
 	}
 }

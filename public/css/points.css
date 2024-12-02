@@ -1,6 +1,5 @@
 /* Стили для точек на карте */
 .custom-point {
-    background-color: #0078ff;
     width: 30px; /* Ширина маркера */
     height: 30px; /* Высота маркера */
     border-radius: 50%; /* Круг */
@@ -43,10 +42,10 @@
 
 .custom-cluster-balloon .scrollable-content {
     max-height: 300px;
+    min-width: 230px;
     overflow-y: auto;
     border-radius: 5px;
     padding: 10px;
-    background-color: #f9f9f9;
 }
 
 .custom-cluster-balloon ul {

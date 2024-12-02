@@ -92,22 +92,48 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 
 document.addEventListener('DOMContentLoaded', () => {
-	let eventsChart, settlementsChart;
+	let multiMonthChart, settlementsChart
 
-	const renderEventsChart = (labels, counts) => {
-		const ctx = document.getElementById('eventsChart').getContext('2d');
-		eventsChart = new Chart(ctx, {
+	// Рендеринг наложенного графика для нескольких месяцев
+	const renderMultiMonthChart = (october, november, december) => {
+		const combinedLabels = Array.from(new Set([...october.labels, ...november.labels, ...december.labels])).sort((a, b) => a - b);
+
+		const syncData = (data, combinedLabels) => {
+			return combinedLabels.map(label => {
+				const index = data.labels.indexOf(label);
+				return index !== -1 ? data.counts[index] : 0;
+			});
+		};
+
+		const dataOctober = syncData(october, combinedLabels);
+		const dataNovember = syncData(november, combinedLabels);
+		const dataDecember = syncData(december, combinedLabels);
+
+		const ctx = document.getElementById('multiMonthChart').getContext('2d');
+		multiMonthChart = new Chart(ctx, {
 			type: 'line',
 			data: {
-				labels,
-				datasets: [{
-					label: 'Количество обращений',
-					data: counts,
-					borderColor: '#007bff',
-					tension: 0.3,
-					fill: false,
-					pointBackgroundColor: '#007bff',
-				}]
+				labels: combinedLabels,
+				datasets: [
+					{
+						label: 'Октябрь',
+						data: dataOctober,
+						borderColor: '#007bff',
+						tension: 0.3,
+					},
+					{
+						label: 'Ноябрь',
+						data: dataNovember,
+						borderColor: '#28a745',
+						tension: 0.3,
+					},
+					{
+						label: 'Декабрь',
+						data: dataDecember,
+						borderColor: '#ffc107',
+						tension: 0.3,
+					},
+				],
 			},
 			options: {
 				responsive: true,
@@ -119,29 +145,47 @@ document.addEventListener('DOMContentLoaded', () => {
 					},
 					tooltip: {
 						enabled: true,
+						callbacks: {
+							title: (tooltipItems) => {
+								return `День месяца: ${tooltipItems[0].label}`;
+							},
+							label: (tooltipItem) => {
+								return `Количество обращений: ${tooltipItem.raw}`;
+							},
+						},
 					},
 				},
 				scales: {
 					x: {
 						title: {
 							display: true,
-							text: 'Дата',
+							text: 'Дни месяца',
 						},
+						grid: {
+							display: true,
+						},
+
 					},
 					y: {
 						title: {
 							display: true,
-							text: 'Количество',
+							text: 'Количество обращений',
 						},
 						beginAtZero: true,
+						grid: {
+							color: 'rgba(200, 200, 200, 0.2)', // Добавляем лёгкий фон сетки
+						},
+
 					},
 				},
 			},
 		});
 	};
 
+
+	// Рендеринг графика по поселениям
 	const renderSettlementsChart = (labels, counts) => {
-		const ctx = document.getElementById('settlementsChart').getContext('2d');
+		const ctx = document.getElementById('settlementsChart').getContext('2d')
 		settlementsChart = new Chart(ctx, {
 			type: 'bar',
 			data: {
@@ -151,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					data: counts,
 					backgroundColor: '#28a745',
 					borderColor: '#28a745',
-					borderWidth: 1,
+					borderWidth: 1
 				}]
 			},
 			options: {
@@ -160,55 +204,100 @@ document.addEventListener('DOMContentLoaded', () => {
 				plugins: {
 					legend: {
 						display: true,
-						position: 'top',
+						position: 'top'
 					},
 					tooltip: {
-						enabled: true,
-					},
+						enabled: true
+					}
 				},
 				scales: {
 					x: {
 						title: {
 							display: true,
-							text: 'Поселение',
-						},
+							text: 'Поселение'
+						}
 					},
 					y: {
 						title: {
 							display: true,
-							text: 'Количество обращений',
+							text: 'Количество обращений'
 						},
-						beginAtZero: true,
-					},
-				},
-			},
-		});
-	};
+						beginAtZero: true
+					}
+				}
+			}
+		})
+	}
 
+	// Запрос данных и рендеринг графиков
 	fetch('/chart-data')
 		.then(response => response.json())
 		.then(data => {
 			if (data.success) {
-				const { labels, data: counts, settlements } = data;
+				const october = data.october
+				const november = data.november
+				const december = data.december
 
-				// Рендерим первый график по умолчанию
-				renderEventsChart(labels, counts);
+				// Рендерим график по месяцам (по умолчанию)
+				renderMultiMonthChart(october, november, december)
 
-				// Инициализация вкладок
+				// Рендерим график по поселениям при переключении вкладки
 				document.getElementById('by-settlement-tab').addEventListener('click', () => {
 					if (!settlementsChart) {
-						renderSettlementsChart(settlements.labels, settlements.counts);
+						renderSettlementsChart(data.settlements.labels, data.settlements.counts)
 					}
-				});
-
-				document.getElementById('by-date-tab').addEventListener('click', () => {
-					if (!eventsChart) {
-						renderEventsChart(labels, counts);
-					}
-				});
+				})
 			} else {
-				console.error('Ошибка при загрузке данных:', data.message);
+				console.error('Ошибка загрузки данных:', data.message)
 			}
 		})
-		.catch(err => console.error('Ошибка при запросе:', err));
+		.catch(err => console.error('Ошибка при запросе:', err))
+})
+
+
+document.addEventListener('DOMContentLoaded', () => {
+	fetch('/get-appeals')
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				// Устанавливаем значение "Всего"
+				const totalElement = document.getElementById('total-appeals')
+				totalElement.textContent = data.total
+
+				// Устанавливаем значение "Выполнено"
+				const completedElement = document.getElementById('completed-appeals')
+				completedElement.textContent = data.completed
+
+				// Устанавливаем значение "В работе"
+				const inProgressElement = document.getElementById('in-progress')
+				inProgressElement.textContent = data.inProgress
+			} else {
+				console.error('Ошибка загрузки данных:', data.message)
+			}
+		})
+		.catch(error => {
+			console.error('Ошибка:', error)
+		})
+})
+
+document.addEventListener('DOMContentLoaded', () => {
+	fetch('/lines-statistics')
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				// Обновляем значения в блоке статистики
+				const inProgressElement = document.querySelector('.statistic-value span:nth-child(2)');
+				const completedElement = document.querySelector('.statistic-value:nth-child(2) span:nth-child(2)');
+				const remainingElement = document.querySelector('.statistic-value:nth-child(3) span:nth-child(2)');
+
+				if (inProgressElement) inProgressElement.textContent = data.inProgress;
+				if (completedElement) completedElement.textContent = data.completed;
+				if (remainingElement) remainingElement.textContent = data.remaining;
+			} else {
+				console.error('Ошибка загрузки статистики:', data.message);
+			}
+		})
+		.catch(error => {
+			console.error('Ошибка:', error);
+		});
 });

@@ -56,15 +56,15 @@
             <div class="consumption">
                 <div class="statistic-value">
                     <span>В работе</span>
-                    <span style="color: #007BFF">-----</span>
+                    <span style="color: #007BFF">---</span>
                 </div>
                 <div class="statistic-value">
                     <span>Выполнено</span>
-                    <span style="color: #00FF00">-----</span>
+                    <span style="color: #00FF00">---</span>
                 </div>
                 <div class="statistic-value">
                     <span>Остаток</span>
-                    <span style="color: red">-----</span>
+                    <span style="color: red">---</span>
                 </div>
             </div>
         </a>
@@ -76,15 +76,15 @@
             <div class="consumption">
                 <div class="statistic-value">
                     <span>В работе</span>
-                    <span style="color: #007BFF">-----</span>
+                    <span id="in-progress" style="color: #007BFF">---</span>
                 </div>
                 <div class="statistic-value">
                     <span>Выполнено</span>
-                    <span style="color: #00FF00">-----</span>
+                    <span id="completed-appeals" style="color: #00FF00">---</span>
                 </div>
                 <div class="statistic-value">
                     <span>Всего</span>
-                    <span style="color: red">-----</span>
+                    <span id="total-appeals">---</span>
                 </div>
             </div>
         </a>
@@ -111,15 +111,9 @@
         <!-- Переключатель вкладок -->
         <ul class="nav nav-tabs chart-tabs" id="chartTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="by-date-tab" data-bs-toggle="tab" data-bs-target="#by-date"
-                        type="button" role="tab" aria-controls="by-date" aria-selected="true">
-                    По датам
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="" data-bs-toggle="tab" data-bs-target="#by-settlement"
-                        type="button" role="tab" aria-controls="by-settlement" aria-selected="false">
-                    По районам
+                <button class="nav-link active" id="by-multi-month-tab" data-bs-toggle="tab" data-bs-target="#by-multi-month"
+                        type="button" role="tab" aria-controls="by-multi-month" aria-selected="true">
+                    По месяцам
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -128,19 +122,13 @@
                     По поселениям
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="" data-bs-toggle="tab" data-bs-target="#by-settlement"
-                        type="button" role="tab" aria-controls="by-settlement" aria-selected="false">
-                    По округам
-                </button>
-            </li>
         </ul>
 
         <!-- Содержимое вкладок -->
         <div class="tab-content chart-tab-content mt-3" id="chartTabsContent">
-            <div class="tab-pane fade show active" id="by-date" role="tabpanel" aria-labelledby="by-date-tab">
+            <div class="tab-pane fade show active" id="by-multi-month" role="tabpanel" aria-labelledby="by-multi-month-tab">
                 <div class="chart-container">
-                    <canvas id="eventsChart"></canvas>
+                    <canvas id="multiMonthChart"></canvas>
                 </div>
             </div>
             <div class="tab-pane fade" id="by-settlement" role="tabpanel" aria-labelledby="by-settlement-tab">
@@ -152,10 +140,11 @@
     </section>
 
 
+
+
     <div class="tile-block-container">
         <div class="tile-container">
-            <video src="videos/gbu.mp4" autoplay muted loop playsinline controlslist="nodownload"
-                   disablepictureinpicture></video>
+            <video src="videos/gbu.mp4" autoplay muted loop></video>
         </div>
 
         <div class="tile-container p-3">
