@@ -96,37 +96,6 @@
     font-weight: bold;
 }
 
-.form-control {
-    border-radius: 10px; /* Скругленные углы для полей ввода */
-}
-
-.btn {
-    border-radius: 25px; /* Скругленные углы */
-    font-weight: bold;
-    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
-}
-
-.btn-primary {
-    background-color: #FFFFFF; /* Белый фон */
-    color: #000000; /* Черный текст */
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #0078ff; /* Синий фон при наведении */
-    color: #FFFFFF; /* Белый текст при наведении */
-}
-
-.btn-danger {
-    background-color: #FFFFFF; /* Белый фон */
-    color: #000000; /* Черный текст */
-    border: none;
-}
-
-.btn-danger:hover {
-    background-color: #0078ff; /* Синий фон при наведении */
-    color: #FFFFFF; /* Белый текст при наведении */
-}
 
 /* Убедитесь, что диалоговое окно занимает высоту тега main */
 .edit-dialog {
@@ -134,19 +103,7 @@
     top: 66px; /* Отступ сверху для избегания блока header */
 }
 
-/* Основные стили для dropdown menu */
-.dropdown-menu {
-    position: fixed; /* Закрепляем меню на экране */
-    top: 66px; /* Отступ от верхнего края, чтобы меню начиналось сразу под header */
-    right: 0; /* Прижимаем меню к правому краю */
-    width: 160px; /* Устанавливаем ширину меню */
-    background-color: #fff; /* Белый фон */
-    border: none; /* Убираем границу */
-    border-radius: 4px; /* Скругленные углы */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Легкая тень для выделения */
-    z-index: 1500;
 
-}
 
 #additionalFields {
     margin-top: 15px;
@@ -186,4 +143,3 @@
     background-color: #0078ff; /* Синий фон при наведении и фокусе */
     color: #FFFFFF; /* Белый текст при наведении и фокусе */
 }
-

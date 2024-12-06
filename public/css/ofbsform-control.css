@@ -1,0 +1,27 @@
+/* Отключить подсвечивание при фокусе */
+.form-control:focus,
+.form-select:focus,
+button:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Убираем стиль наведения на кнопку */
+button:hover {
+    box-shadow: none;
+    outline: none;
+}
+
+/* Удаляем подчеркивание/изменения при наведении на select */
+.form-select:hover {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Общие стили для элементов формы */
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}

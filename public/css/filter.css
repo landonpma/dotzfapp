@@ -106,6 +106,7 @@
     border-radius: 5px;
     font-size: 14px;
 }
+
 .filter-flex {
     display: flex;
     justify-content: space-between; /* Выравнивание кнопок по краям */
@@ -117,4 +118,10 @@
     background-color: #0078ff; /* Серый фон при наведении */
     color: #ffffff;
 }
+.form-select {
+    font-size: 14px;
+}
+
+
+
 

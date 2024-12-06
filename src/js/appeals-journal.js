@@ -522,3 +522,41 @@ function toggleMap(inputId) {
 		}
 	}
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+	const searchButton = document.querySelector('.search-button');
+	const formFields = document.querySelectorAll('.hidden-field');
+	const searchIcon = searchButton.querySelector('.fas'); // Найти иконку FontAwesome внутри кнопки
+
+	searchButton.addEventListener('click', function () {
+		formFields.forEach((field) => {
+			if (field.classList.contains('show')) {
+				field.classList.remove('show');
+				field.classList.add('hide');
+				setTimeout(() => {
+					field.style.display = 'none'; // Скрыть после завершения анимации
+				}, 300);
+			} else {
+				field.style.display = 'block'; // Отображать перед началом анимации
+				field.classList.remove('hide');
+				field.classList.add('show');
+			}
+		});
+
+		// Переключение класса для значка
+		if (searchIcon.classList.contains('fa-magnifying-glass')) {
+			searchIcon.classList.remove('fa-magnifying-glass');
+			searchIcon.classList.add('fa-times'); // Меняем значок на крестик
+		} else {
+			searchIcon.classList.remove('fa-times');
+			searchIcon.classList.add('fa-magnifying-glass'); // Меняем значок обратно на лупу
+		}
+
+		searchButton.classList.toggle('active');
+	});
+
+	// Изначально скрыть поля формы
+	formFields.forEach((field) => {
+		field.style.display = 'none';
+	});
+});

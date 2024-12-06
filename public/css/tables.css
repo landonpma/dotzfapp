@@ -51,20 +51,4 @@
     margin: 5px 0; /* Отступы между параграфами */
 }
 
-/* Стили для строки поиска */
-#search-input {
-    margin-left: 10px; /* Отступ слева */
-}
 
-/* Стили для кнопок */
-.btn-custom {
-    background-color: #f6f6f6; /* Светло-серый фон */
-    color: #000000; /* Черный текст */
-    border-radius: 10px; /* Закругленные углы */
-    transition: background-color 0.3s ease; /* Плавное изменение фона при наведении */
-}
-
-.btn-custom:hover {
-    background-color: #0078ff; /* Синий фон при наведении */
-    color: #fff; /* Белый текст при наведении */
-}

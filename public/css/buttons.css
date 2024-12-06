@@ -1,0 +1,40 @@
+.btn {
+    border-radius: 25px; /* Скругленные углы */
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+}
+
+.btn-primary {
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #FFFFFF; /* Белый текст при наведении */
+}
+
+.btn-danger {
+    background-color: #FFFFFF; /* Белый фон */
+    color: #000000; /* Черный текст */
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #FFFFFF; /* Белый текст при наведении */
+}
+
+/* Стили для кнопок */
+.btn-custom {
+    background-color: #f6f6f6; /* Светло-серый фон */
+    color: #000000; /* Черный текст */
+    border-radius: 10px; /* Закругленные углы */
+    transition: background-color 0.3s ease; /* Плавное изменение фона при наведении */
+}
+
+.btn-custom:hover {
+    background-color: #0078ff; /* Синий фон при наведении */
+    color: #fff; /* Белый текст при наведении */
+}
