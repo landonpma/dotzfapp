@@ -1,9 +1,9 @@
 @font-face {
     font-family: 'ALS Hauss';
-    src: url('fonts/ALSHauss-Regular.woff2') format('woff2'),
-    url('fonts/ALSHauss-Regular.woff') format('woff');
-    font-weight: normal;
     font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../fonts/ALSHauss-Regular.ttf") format('truetype');
 }
 
 html, body{

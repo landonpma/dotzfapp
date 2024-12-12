@@ -78,6 +78,7 @@ $(document).ready(function() {
 		const query = $(this).val().trim()
 		const column = $('#column-select').val()
 
+
 		if (query !== lastQuery) {
 			lastQuery = query
 

@@ -29,6 +29,8 @@ ymaps.ready().then(function() {
                     <li class="balloon-item" data-num="{{ geoObject.properties.number }}">
                         <strong>Заявление № {{ geoObject.properties.number }}</strong>
                         <p><strong>Дата:</strong> {{ geoObject.properties.date }}</p>
+                        <p><strong>Статус:</strong> {{ geoObject.properties.status }}</p>
+                        <p><strong>Cрок исполнения:</strong> {{ geoObject.properties.deadline }}</p>
                     </li>
                 {% endfor %}
             </ul>
@@ -112,6 +114,12 @@ ymaps.ready().then(function() {
 			// Открываем модальное окно
 			const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
 			detailsModal.show()
+
+			const EditButton = document.getElementById('edit-button')
+			const DeleteButton = document.getElementById('delete-button')
+
+			EditButton.style.display = 'none'
+			DeleteButton.style.display = 'none'
 		}
 	})
 
@@ -166,6 +174,12 @@ ymaps.ready().then(function() {
 					// Открываем модальное окно
 					const detailsModal = new bootstrap.Modal(modalElement)
 					detailsModal.show()
+
+					const EditButton = document.getElementById('edit-button')
+					const DeleteButton = document.getElementById('delete-button')
+
+					EditButton.style.display = 'none'
+					DeleteButton.style.display = 'none'
 				})
 			})
 		}
@@ -221,21 +235,21 @@ ymaps.ready().then(function() {
 		}
 	}
 
-// События для точек
+	// События для точек
 	objectManager.objects.events.add(['mouseenter', 'mouseleave'], function(e) {
 		const eventType = e.get('type') // 'mouseenter' или 'mouseleave'
 		const objectId = e.get('objectId')
 		handleHover(eventType, 'object', objectId)
 	})
 
-// События для кластеров
+	// События для кластеров
 	objectManager.clusters.events.add(['mouseenter', 'mouseleave'], function(e) {
 		const eventType = e.get('type') // 'mouseenter' или 'mouseleave'
 		const clusterId = e.get('objectId')
 		handleHover(eventType, 'cluster', clusterId)
 	})
 
-// Логика для отображения балуна
+	// Логика для отображения балуна
 	objectManager.objects.events.add('mouseenter', function(e) {
 		const objectId = e.get('objectId')
 		const object = objectManager.objects.getById(objectId)
@@ -489,7 +503,7 @@ function createBalloonContent(appeal) {
 	if (appeal.topic) content += `<strong>Тема:</strong> ${appeal.topic}<br>`
 	if (appeal.address) content += `<strong>Адрес:</strong> ${appeal.address}<br>`
 	if (appeal.status) content += `<strong>Статус:</strong> ${appeal.status}<br>`
-	if (appeal.deadline) content += `<strong>Срок выполнения:</strong> ${appeal.deadline}<br>`
+	if (appeal.deadline) content += `<strong>Срок исполнения:</strong> ${appeal.deadline}<br>`
 	if (appeal.source) content += `<strong>Источник:</strong> ${appeal.source}<br>`
 	if (appeal.employee) content += `<strong>Ответственный:</strong> ${appeal.employee}<br>`
 	return content

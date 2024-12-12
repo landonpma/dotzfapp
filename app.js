@@ -671,54 +671,77 @@ app.post('/delete-appeal', (req, res) => {
 })
 
 app.get('/search-appeals', (req, res) => {
-	const query = req.query.query || ''
-	const column = req.query.column || 'num'
-	const offset = parseInt(req.query.offset, 10) || 0
-	const limit = parseInt(req.query.limit, 10) || 20
+	const query = req.query.query || '';
+	const column = req.query.column || 'num';
+	const offset = parseInt(req.query.offset, 10) || 0;
+	const limit = parseInt(req.query.limit, 10) || 20;
 
 	// Разрешенные столбцы для поиска
-	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee', 'deadline']
+	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee', 'deadline'];
 	if (!validColumns.includes(column)) {
-		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' })
+		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' });
 	}
 
-	// Подготовка SQL-запроса с независимостью от регистра и сортировкой
-	const sqlQuery = `
-        SELECT * FROM appeals
-        WHERE LOWER(${column}) LIKE LOWER(?)
-        ORDER BY num DESC
-        LIMIT ? OFFSET ?`
+	let sqlQuery;
+	let params;
 
-	const params = [`%${query}%`, limit, offset]
+	if (column === 'num') {
+		// Если поиск по столбцу num, выполняем точный поиск
+		sqlQuery = `
+            SELECT * FROM appeals
+            WHERE ${column} = ?
+            ORDER BY num DESC
+            LIMIT ? OFFSET ?`;
+		params = [query, limit, offset];
+	} else {
+		// Поиск с использованием LIKE для других столбцов
+		sqlQuery = `
+            SELECT * FROM appeals
+            WHERE LOWER(${column}) LIKE LOWER(?)
+            ORDER BY num DESC
+            LIMIT ? OFFSET ?`;
+		params = [`%${query}%`, limit, offset];
+	}
 
 	db.all(sqlQuery, params, (err, rows) => {
 		if (err) {
-			console.error('Ошибка поиска:', err)
-			return res.status(500).json({ success: false, message: 'Ошибка поиска данных' })
+			console.error('Ошибка поиска:', err);
+			return res.status(500).json({ success: false, message: 'Ошибка поиска данных' });
 		}
 
 		// Подсчет общего количества строк
-		const countQuery = `
-            SELECT COUNT(*) as total FROM appeals
-            WHERE LOWER(${column}) LIKE LOWER(?)`
+		let countQuery;
+		let countParams;
 
-		db.get(countQuery, [`%${query}%`], (countErr, countResult) => {
+		if (column === 'num') {
+			countQuery = `
+                SELECT COUNT(*) as total FROM appeals
+                WHERE ${column} = ?`;
+			countParams = [query];
+		} else {
+			countQuery = `
+                SELECT COUNT(*) as total FROM appeals
+                WHERE LOWER(${column}) LIKE LOWER(?)`;
+			countParams = [`%${query}%`];
+		}
+
+		db.get(countQuery, countParams, (countErr, countResult) => {
 			if (countErr) {
-				console.error('Ошибка подсчета:', countErr)
-				return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' })
+				console.error('Ошибка подсчета:', countErr);
+				return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' });
 			}
 
-			res.json({ success: true, data: rows, total: countResult.total })
-		})
-	})
-})
+			res.json({ success: true, data: rows, total: countResult.total });
+		});
+	});
+});
 
 
 app.get('/get-appeals', (req, res) => {
 	const query = 'SELECT * FROM appeals'
 	const countQuery = 'SELECT COUNT(*) as total FROM appeals'
-	const completedQuery = 'SELECT COUNT(*) as completed FROM appeals WHERE status = \'Опубликован\''
-	const inProgressQuery = 'SELECT COUNT(*) as inProgress FROM appeals WHERE status != \'Опубликован\''
+	const completedQuery = 'SELECT COUNT(*) as completed FROM appeals WHERE status IN (\'Опубликован\', \'Перенаправлен Арбитру\', \'На утверждении\')';
+	const inProgressQuery = 'SELECT COUNT(*) as inProgress FROM appeals WHERE status NOT IN (\'Опубликован\', \'Перенаправлен Арбитру\', \'На утверждении\')';
 
 	db.all(query, [], (err, rows) => {
 		if (err) {
