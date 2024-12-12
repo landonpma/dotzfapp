@@ -38,7 +38,7 @@ ymaps.ready().then(function() {
 
 	objectManager = new ymaps.ObjectManager({
 		clusterize: true,
-		gridSize: 46,
+		gridSize: 24,
 		clusterDisableClickZoom: true,
 		clusterOpenBalloonOnClick: true,
 		clusterBalloonContentLayout: customClusterBalloonLayout,
@@ -79,12 +79,14 @@ ymaps.ready().then(function() {
 		// Очистка полей ввода даты
 		document.getElementById('startDate').value = ''
 		document.getElementById('endDate').value = ''
-		document.getElementById('statusFilter').value = ''
+		document.getElementById('statusFilter').value = 'В работе'
+		document.getElementById('filterBanner').style.display = 'none'
 
-		loadAppeals()
+		loadAppealsInProgress()
+		toastr.success('Фильтр сброшен!')
 	})
 
-	loadAppeals()
+	loadAppealsInProgress()
 
 
 	// Добавляем обработчик событий для клика на маркеры
@@ -105,6 +107,7 @@ ymaps.ready().then(function() {
 			document.getElementById('modal-status').textContent = object.properties.status || 'Не указано'
 			document.getElementById('modal-source').textContent = object.properties.source || 'Не указано'
 			document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано'
+			document.getElementById('modal-deadline').textContent = object.properties.deadline || 'Не указано'
 
 			// Открываем модальное окно
 			const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
@@ -158,6 +161,7 @@ ymaps.ready().then(function() {
 					document.getElementById('modal-status').textContent = object.properties.status || 'Не указано'
 					document.getElementById('modal-source').textContent = object.properties.source || 'Не указано'
 					document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано'
+					document.getElementById('modal-deadline').textContent = object.properties.deadline || 'Не указано'
 
 					// Открываем модальное окно
 					const detailsModal = new bootstrap.Modal(modalElement)
@@ -305,6 +309,81 @@ ymaps.ready().then(function() {
 	})
 })
 
+function loadAppealsInProgress(url = '/get-appeals') {
+	// Отображение плашки
+	const filterBanner = document.getElementById('filterBanner');
+	const filterText = document.getElementById('filterText');
+	filterBanner.style.display = 'block';
+	filterText.textContent = 'Обращения со статусом: В работе';
+
+	fetch(url)
+		.then(response => {
+			if (!response.ok) {
+				throw new Error(`HTTP Error: ${response.status}`);
+			}
+			return response.json();
+		})
+		.then(data => {
+
+			if (!data.success) {
+				throw new Error(data.message || 'Неизвестная ошибка');
+			}
+
+			if (!data.appeals || !Array.isArray(data.appeals)) {
+				throw new Error('Неверный формат данных: отсутствует массив appeals');
+			}
+
+			// Исключаем обращения с определёнными статусами
+			const excludedStatuses = ['Опубликован', 'Перенаправлен Арбитру'];
+			const filteredAppeals = data.appeals.filter(appeal => !excludedStatuses.includes(appeal.status));
+
+			const features = filteredAppeals.map((appeal) => {
+				const coordinates = parseCoordinates(appeal.coordinates);
+
+				if (!coordinates) {
+					console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`);
+					return null;
+				}
+
+				return {
+					type: 'Feature',
+					id: appeal.id,
+					geometry: { type: 'Point', coordinates },
+					properties: {
+						number: appeal.num,
+						date: appeal.date,
+						card_number: appeal.card_number,
+						settlement: appeal.settlement,
+						address: appeal.address,
+						coordinates: appeal.coordinates,
+						topic: appeal.topic,
+						measures: appeal.measures,
+						status: appeal.status,
+						source: appeal.source,
+						employee: appeal.employee,
+						deadline: appeal.deadline,
+						color: getColorByStatus(appeal.status),
+						balloonContent: createBalloonContent(appeal),
+						hintContent: appeal.num
+					}
+				};
+			}).filter(Boolean);
+
+			objectManager.removeAll();
+
+			objectManager.add({
+				type: 'FeatureCollection',
+				features: features
+			});
+
+			const bounds = objectManager.getBounds();
+			if (bounds) {
+				myMap.setBounds(bounds, { checkZoomRange: true });
+			}
+		})
+		.catch(error => console.error('Ошибка загрузки данных:', error));
+}
+
 function loadAppeals(url = '/get-appeals') {
 	fetch(url)
 		.then(response => {
@@ -348,6 +427,7 @@ function loadAppeals(url = '/get-appeals') {
 						status: appeal.status,
 						source: appeal.source,
 						employee: appeal.employee,
+						deadline: appeal.deadline,
 						color: getColorByStatus(appeal.status),
 						balloonContent: createBalloonContent(appeal),
 						hintContent: appeal.num
@@ -392,8 +472,10 @@ function getColorByStatus(status) {
 			return '#84c042'
 		case 'Перенаправлен Арбитру':
 			return '#ce31ff'
-		case 'Отработано':
+		case 'На утверждении':
 			return '#e4cf00'
+		case 'Доп. контроль':
+			return '#ff0000'
 		default:
 			return '#0078ff'
 	}
@@ -407,6 +489,7 @@ function createBalloonContent(appeal) {
 	if (appeal.topic) content += `<strong>Тема:</strong> ${appeal.topic}<br>`
 	if (appeal.address) content += `<strong>Адрес:</strong> ${appeal.address}<br>`
 	if (appeal.status) content += `<strong>Статус:</strong> ${appeal.status}<br>`
+	if (appeal.deadline) content += `<strong>Срок выполнения:</strong> ${appeal.deadline}<br>`
 	if (appeal.source) content += `<strong>Источник:</strong> ${appeal.source}<br>`
 	if (appeal.employee) content += `<strong>Ответственный:</strong> ${appeal.employee}<br>`
 	return content
@@ -433,6 +516,7 @@ document.getElementById('edit-button').addEventListener('click', function() {
 	document.getElementById('edit-status').value = document.getElementById('modal-status').textContent || ''
 	document.getElementById('edit-source').value = document.getElementById('modal-source').textContent || ''
 	document.getElementById('edit-employee').value = document.getElementById('modal-employee').textContent || ''
+	document.getElementById('edit-deadline').value = document.getElementById('modal-deadline').textContent || ''
 
 	// Открываем модальное окно редактирования
 	const editModal = new bootstrap.Modal(document.getElementById('editModal'))
@@ -488,7 +572,8 @@ document.getElementById('save-edit-button').addEventListener('click', function()
 		measures: document.getElementById('edit-measures').value,
 		status: document.getElementById('edit-status').value,
 		source: document.getElementById('edit-source').value,
-		employee: document.getElementById('edit-employee').value
+		employee: document.getElementById('edit-employee').value,
+		deadline: document.getElementById('edit-deadline').value
 	}
 
 	// Отправляем данные на сервер
@@ -512,37 +597,63 @@ document.getElementById('save-edit-button').addEventListener('click', function()
 		})
 })
 
-function filterAppeals(startDate, endDate, status, districts) {
-	const url = new URL('/filter-appeals', window.location.origin)
+function filterAppeals(startDate, endDate, status) {
+	const url = new URL('/filter-appeals', window.location.origin);
 
-	if (startDate) url.searchParams.append('startDate', startDate)
-	if (endDate) url.searchParams.append('endDate', endDate)
-	if (status) url.searchParams.append('status', status)
-	if (districts && districts.length > 0) {
-		url.searchParams.append('districts', districts.join(','))
+	// Проверяем, что статус выбран
+	if ((startDate || endDate) && !status) {
+		toastr.warning('Для фильтрации по дате необходимо выбрать статус.');
+		return;
 	}
 
-	loadAppeals(url.toString())
+	if (startDate) url.searchParams.append('startDate', startDate);
+	if (endDate) url.searchParams.append('endDate', endDate);
+
+	if (status) {
+		url.searchParams.append('status', status);
+
+		// Обновляем текст плашки
+		const filterBanner = document.getElementById('filterBanner');
+		const filterText = document.getElementById('filterText');
+		filterBanner.style.display = 'block';
+
+		if (status === 'Все') {
+			filterText.textContent = 'Отображаются все обращения';
+			loadAppeals();
+			return; // Завершаем выполнение, чтобы не было двойного вызова
+		}
+		if (status === 'В работе') {
+			filterText.textContent = 'Отображаются обращения в работе';
+			loadAppealsInProgress();
+			return; // Завершаем выполнение, чтобы не было двойного вызова
+		} else {
+			filterText.textContent = `Обращения со статусом: ${status}`;
+		}
+	}
+
+	loadAppeals(url.toString());
 }
 
 document.getElementById('applyDateFilter').addEventListener('click', function() {
 	// Получаем значения фильтров
-	const startDate = document.getElementById('startDate').value
-	const endDate = document.getElementById('endDate').value
+	const startDate = document.getElementById('startDate').value;
+	const endDate = document.getElementById('endDate').value;
 
-	// Собираем выбранные районы
-	const selectedDistricts = Array.from(
-		document.querySelectorAll('#districtCheckboxes input[type="checkbox"]:checked')
-	).map(checkbox => checkbox.value)
-
-	const status = document.getElementById('statusFilter').value // Значение фильтра по статусу
+	const status = document.getElementById('statusFilter').value; // Значение фильтра по статусу
 
 	// Проверяем, что хотя бы один фильтр активен
-	if (!startDate && !endDate && !status && selectedDistricts.length === 0) {
-		toastr.warning('Пожалуйста, выберите хотя бы один критерий фильтрации.')
-		return
+	if (!startDate && !endDate && !status) {
+		toastr.warning('Пожалуйста, выберите хотя бы один критерий фильтрации.');
+		return;
+	}
+
+	// Проверяем, что выбран статус при фильтрации по дате
+	if ((startDate || endDate) && !status) {
+		toastr.warning('Для фильтрации по дате необходимо выбрать статус.');
+		return;
 	}
 
 	// Отправляем параметры на сервер
-	filterAppeals(startDate, endDate, status, selectedDistricts)
-})
+	filterAppeals(startDate, endDate, status);
+});
+

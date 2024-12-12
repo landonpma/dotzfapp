@@ -1,8 +1,8 @@
 @font-face {
-    font-family: 'ALSHauss';
-    src: url('public/fonts/ALSHauss-Black.woff2') format('woff2'),
-    url('public/fonts/ALSHauss-Black.woff') format('woff');
-    font-weight: bold;
+    font-family: 'ALS Hauss';
+    src: url('fonts/ALSHauss-Regular.woff2') format('woff2'),
+    url('fonts/ALSHauss-Regular.woff') format('woff');
+    font-weight: normal;
     font-style: normal;
 }
 

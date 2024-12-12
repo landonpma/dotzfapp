@@ -102,34 +102,55 @@
 
                     <!-- Фильтр по дате -->
                     <div class="filter-section">
-                        <h6>По дате</h6>
                         <hr class="dropdown-divider" />
-                        <label for="startDate" class="filter-label">Начальная дата:</label>
-                        <input type="date" id="startDate" class="filter-input">
-                        <label for="endDate" class="filter-label">Конечная дата:</label>
-                        <input type="date" id="endDate" class="filter-input">
+                        <div class="d-flex justify-content-between gap-3 mb-3 flex-wrap">
+                            <div class="flex-fill">
+                                <label for="startDate" class="filter-label">Начальная дата:</label>
+                                <input type="date" id="startDate" class="form-control">
+                            </div>
+                            <div class="flex-fill">
+                                <label for="endDate" class="filter-label">Конечная дата:</label>
+                                <input type="date" id="endDate" class="form-control">
+                            </div>
+                        </div>
                         <hr class="dropdown-divider" />
                     </div>
 
-                    <!-- Фильтр по статусу -->
-                    <div class="filter-section">
-                        <h6>Фильтр по статусу:</h6>
-                        <select id="statusFilter" class="form-select mb-3">
-                            <option value="" disabled selected>Статус</option>
-                            <option value="Опубликован">Опубликован</option>
-                            <option value="Перенаправлен Арбитру">Перенаправлен Арбитру</option>
-                            <option value="Отработано">Отработано</option>
-                        </select>
+                    <!-- Фильтр по статусу и по годам -->
+                    <div class="d-flex justify-content-between gap-3 mb-3 flex-wrap">
+                        <div class="flex-fill">
+                            <label for="statusFilter" class="filter-label">По статусу:</label>
+                            <select id="statusFilter" class="form-select">
+                                <option value="В работе">В работе</option>
+                                <option value="Опубликован">Опубликован</option>
+                                <option value="Перенаправлен Арбитру">Перенаправлен Арбитру</option>
+                                <option value="На утверждении">На утверждении</option>
+                                <option value="Доп. контроль">Доп. контроль</option>
+                                <option value="Все">Все</option>
+                            </select>
+                        </div>
+                        <div class="flex-fill">
+                            <label for="yearFilter" class="filter-label">По годам:</label>
+                            <select id="yearFilter" class="form-select">
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="filter-flex">
-                        <button id="applyDateFilter" class="btn">Применить</button>
-                        <button id="resetDateFilter" class="btn">Сбросить</button>
+                    <!-- Кнопки -->
+                    <div class="d-flex justify-content-between mt-3">
+                        <button id="applyDateFilter" class="btn btn-primary">Применить</button>
+                        <button id="resetDateFilter" class="btn btn-secondary">Сбросить</button>
                     </div>
 
                 </div>
             </div>
 
+        </div>
+
+        <div id="filterBanner" class="filter-banner">
+            <p id="filterText">Все обращения</p>
         </div>
 
         <!-- Контейнер карты Yandex Maps API -->

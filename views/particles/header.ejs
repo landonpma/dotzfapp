@@ -23,12 +23,19 @@
                             <li><a class="dropdown-item text-black" href="/appeals-journal">Журнал</a></li>
                         </ul>
                     </li>
-
                 </ul>
+
+
+                <div class="navbar-text text-end me-auto">
+                    <span id="currentDate" class="fw-bold"></span>
+                    <span id="currentTime" class="fw-bold"></span>
+                </div>
+
 
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown decoration-link">
-                        <a class="nav-link" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
                             <%= username %>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -46,3 +53,35 @@
         </div>
     </nav>
 </header>
+<script>
+	// Обновление даты и времени
+	function updateDateTime() {
+		const currentDateElement = document.getElementById('currentDate');
+		const currentTimeElement = document.getElementById('currentTime');
+		const now = new Date();
+
+		// Форматирование текущей даты
+		const formattedDate = now.toLocaleDateString('ru-RU', {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+
+
+		// Ручное форматирование времени
+		const hours = now.getHours().toString().padStart(2, '0'); // Часы
+		const minutes = now.getMinutes().toString().padStart(2, '0'); // Минуты
+		const seconds = now.getSeconds().toString().padStart(2, '0'); // Секунды
+
+		const formattedTime = `${hours}∶${minutes}∶${seconds}`; // Используем Unicode-символ ∶ (U+2236)
+
+		// Установка значений в элементы
+		currentDateElement.textContent = formattedDate;
+		currentTimeElement.textContent = formattedTime;
+	}
+
+	// Обновление каждую секунду
+	setInterval(updateDateTime, 1000);
+	updateDateTime();
+</script>

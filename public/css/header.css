@@ -10,3 +10,18 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Легкая тень для выделения */
     z-index: 1500;
 }
+
+#currentTime {
+    font-family: 'ALS Hauss', serif; /* Используйте стандартный шрифт */
+    letter-spacing: normal; /* Убедитесь, что интервалы между символами стандартные */
+    white-space: nowrap; /* Предотвращает разрывы строк */
+    overflow: visible; /* Исключает обрезку текста */
+    font-feature-settings: 'lnum' 2;
+}
+
+#currentDate {
+    font-family: 'ALS Hauss', serif;
+    letter-spacing: normal; /* Убедитесь, что интервалы между символами стандартные */
+    white-space: nowrap; /* Предотвращает разрывы строк */
+    overflow: visible; /* Исключает обрезку текста */
+}

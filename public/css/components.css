@@ -143,3 +143,25 @@
     background-color: #0078ff; /* Синий фон при наведении и фокусе */
     color: #FFFFFF; /* Белый текст при наведении и фокусе */
 }
+
+.filter-banner {
+    position: absolute;
+    height: 22px;
+    top: 66px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    background-color: rgba(0, 120, 255, 0.8); /* Полупрозрачный синий фон */
+    color: white;
+    text-align: center;
+    align-items: center;
+    z-index: 1000;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#filterBanner {
+    display: none;
+}
+

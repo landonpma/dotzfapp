@@ -68,3 +68,7 @@ header {
     margin: 0.5rem 0; /* Отступы сверху и снизу */
     border-top: 1px solid #e9ecef; /* Тонкая линия */
 }
+.toast-top-right {
+    top: 76px !important; /* Отступ сверху */
+    right: 12px; /* Отступ справа */
+}

@@ -51,7 +51,8 @@ $(document).ready(function() {
 							row.measures,
 							row.status,
 							row.source,
-							row.employee
+							row.employee,
+							row.deadline
 						]).draw(false)
 					})
 
@@ -112,7 +113,8 @@ $(document).ready(function() {
 							row.measures,
 							row.status,
 							row.source,
-							row.employee
+							row.employee,
+							row.deadline
 						]).draw(false)
 					})
 					totalSearchResults = result.total || result.data.length
@@ -162,77 +164,62 @@ $(document).ready(function() {
 			$('#modal-status').text(rowData[8])
 			$('#modal-source').text(rowData[9]) // Источник
 			$('#modal-employee').text(rowData[10]) // Ответственный сотрудник
+			$('#modal-deadline').text(rowData[11])
 			$('#detailsModal').modal('show')
 		}
 	})
 
 	function exportTableToExcel() {
-		const tableElement = document.getElementById('data-table')
-		const workbook = XLSX.utils.table_to_book(tableElement, { sheet: 'Журнал Обращений' })
-		XLSX.writeFile(workbook, 'ЖурналОбращений.xlsx')
-		toastr.success('Данные успешно экспортированы в Excel')
-	}
-
-	function importTableFromExcel() {
-		const file = document.getElementById('import-file').files[0]
-		if (!file) {
-			toastr.warning('Выберите файл для импорта')
-			return
-		}
-
-		const reader = new FileReader()
-		reader.onload = function(event) {
-			const workbook = XLSX.read(event.target.result, { type: 'binary' })
-			const sheetName = workbook.SheetNames[0]
-			const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-
-			if (data.length > 1 && data[0].length === 11) {
-				table.clear()
-				const processedData = []
-
-				// Функция преобразования даты из Excel
-				const excelDateToJSDate = (excelDate) => {
-					const date = new Date(0) // Базовая дата в JavaScript
-					date.setUTCDate(excelDate - 25567) // Excel хранит даты с 1900-01-01
-					return date.toISOString().split('T')[0] // Форматируем в YYYY-MM-DD
+		// Запрос всех данных с сервера
+		fetch('/get-appeals')
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(`Ошибка при запросе данных: ${response.statusText}`)
+				}
+				return response.json()
+			})
+			.then(data => {
+				if (!data.success) {
+					toastr.error('Ошибка при получении данных с сервера.')
+					return
 				}
 
-				data.slice(1).forEach(row => {
-					if (row.every(cell => cell !== null && cell !== undefined && cell !== '')) {
-						// Если дата в формате числа, преобразуем ее
-						if (!isNaN(row[1]) && typeof row[1] === 'number') {
-							row[1] = excelDateToJSDate(row[1])
-						}
+				// Создание Excel-файла
+				const appealsData = data.appeals.map(row => [
+					row.num,
+					row.date,
+					row.card_number,
+					row.settlement,
+					row.address,
+					row.coordinates,
+					row.topic,
+					row.measures,
+					row.status,
+					row.source,
+					row.employee,
+					row.deadline
+				])
 
-						table.row.add(row)
-						processedData.push(row)
-					}
-				})
+				// Добавление заголовков
+				const headers = [
+					'Номер', 'Дата', 'Карт номер', 'Населённый пункт', 'Адрес',
+					'Координаты', 'Тема', 'Меры', 'Статус', 'Источник', 'Сотрудник', 'Дедлайн'
+				]
+				appealsData.unshift(headers)
 
-				table.draw()
-				console.log('Отправляемые данные на сервер:', processedData)
+				// Создание книги
+				const worksheet = XLSX.utils.aoa_to_sheet(appealsData)
+				const workbook = XLSX.utils.book_new()
+				XLSX.utils.book_append_sheet(workbook, worksheet, 'Журнал Обращений')
 
-				fetch('/save-table-data', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ data: processedData })
-				})
-					.then(response => response.json())
-					.then(result => {
-						if (result.success) {
-							toastr.success('Данные успешно импортированы и сохранены')
-						} else {
-							toastr.error(`Ошибка сохранения данных: ${result.message}`)
-						}
-					})
-					.catch(error => {
-						console.error('Ошибка при отправке данных:', error)
-					})
-			} else {
-				toastr.error('Неверный формат файла. Ожидается 11 колонок.')
-			}
-		}
-		reader.readAsBinaryString(file)
+				// Сохранение файла
+				XLSX.writeFile(workbook, 'ЖурналОбращений.xlsx')
+				toastr.success('Данные успешно экспортированы в Excel.')
+			})
+			.catch(error => {
+				console.error('Ошибка при экспорте:', error)
+				toastr.error('Произошла ошибка при экспорте данных.')
+			})
 	}
 
 	window.exportTableToExcel = exportTableToExcel
@@ -250,7 +237,8 @@ $(document).ready(function() {
 			measures: $('#modal-measures').text(),
 			status: $('#modal-status').text(),
 			source: $('#modal-source').text(),
-			employee: $('#modal-employee').text()
+			employee: $('#modal-employee').text(),
+			deadline: $('#modal-deadline').text()
 		}
 
 		// Заполнить поля формы
@@ -265,6 +253,7 @@ $(document).ready(function() {
 		$('#edit-status').val(rowData.status)
 		$('#edit-source').val(rowData.source)
 		$('#edit-employee').val(rowData.employee)
+		$('#edit-deadline').val(rowData.deadline)
 
 		// Закрыть главное модальное окно
 		$('#detailsModal').modal('hide')
@@ -284,7 +273,8 @@ $(document).ready(function() {
 			measures: $('#edit-measures').val(),
 			status: $('#edit-status').val(),
 			source: $('#edit-source').val(),
-			employee: $('#edit-employee').val()
+			employee: $('#edit-employee').val(),
+			deadline: $('#edit-deadline').val()
 		}
 
 		// Проверка формата координат
@@ -301,7 +291,7 @@ $(document).ready(function() {
 			.then(response => response.json())
 			.then(result => {
 				if (result.success) {
-					toastr.success('Данные успешно обновлены')
+					toastr.success('Изменения успешно сохранены!')
 					$('#editModal').modal('hide')
 
 					// Обновляем таблицу с использованием маршрута /get-appeals-part
@@ -322,7 +312,8 @@ $(document).ready(function() {
 										row.measures,
 										row.status,
 										row.source,
-										row.employee
+										row.employee,
+										row.deadline
 									]).draw(false)
 								})
 							} else {
@@ -334,14 +325,18 @@ $(document).ready(function() {
 							toastr.error('Ошибка загрузки данных.')
 						})
 				} else {
-					toastr.error(`Ошибка обновления данных: ${result.message}`)
+					toastr.error(`Ошибка сохранения изменений: ${result.message}`)
 				}
 			})
 			.catch(error => {
 				console.error('Ошибка при обновлении данных:', error)
-				toastr.error('Ошибка при обновлении данных')
+				toastr.error('Произошла ошибка при сохранении изменений.')
 			})
 	})
+
+	$('#clear-deadline-button').on('click', function() {
+		$('#edit-deadline').val(''); // Очистить значение в поле "Срок выполнения"
+	});
 
 	let appealToDelete = null // Переменная для хранения номера обращения
 
@@ -359,6 +354,7 @@ $(document).ready(function() {
 		$('#add-status').val('')
 		$('#add-source').val('')
 		$('#add-employee').val('')
+		$('#add-deadline').val('')
 
 		// Получить следующий номер обращения с сервера
 		fetch('/get-next-appeal-number')
@@ -390,7 +386,8 @@ $(document).ready(function() {
 			measures: $('#add-measures').val(),
 			status: $('#add-status').val(),
 			source: $('#add-source').val(),
-			employee: $('#add-employee').val()
+			employee: $('#add-employee').val(),
+			deadline: $('#add-deadline').val()
 		}
 
 		// Проверяем формат координат
@@ -523,40 +520,40 @@ function toggleMap(inputId) {
 	}
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-	const searchButton = document.querySelector('.search-button');
-	const formFields = document.querySelectorAll('.hidden-field');
-	const searchIcon = searchButton.querySelector('.fas'); // Найти иконку FontAwesome внутри кнопки
+document.addEventListener('DOMContentLoaded', function() {
+	const searchButton = document.querySelector('.search-button')
+	const formFields = document.querySelectorAll('.hidden-field')
+	const searchIcon = searchButton.querySelector('.fas') // Найти иконку FontAwesome внутри кнопки
 
-	searchButton.addEventListener('click', function () {
+	searchButton.addEventListener('click', function() {
 		formFields.forEach((field) => {
 			if (field.classList.contains('show')) {
-				field.classList.remove('show');
-				field.classList.add('hide');
+				field.classList.remove('show')
+				field.classList.add('hide')
 				setTimeout(() => {
-					field.style.display = 'none'; // Скрыть после завершения анимации
-				}, 300);
+					field.style.display = 'none' // Скрыть после завершения анимации
+				}, 300)
 			} else {
-				field.style.display = 'block'; // Отображать перед началом анимации
-				field.classList.remove('hide');
-				field.classList.add('show');
+				field.style.display = 'block' // Отображать перед началом анимации
+				field.classList.remove('hide')
+				field.classList.add('show')
 			}
-		});
+		})
 
 		// Переключение класса для значка
 		if (searchIcon.classList.contains('fa-magnifying-glass')) {
-			searchIcon.classList.remove('fa-magnifying-glass');
-			searchIcon.classList.add('fa-times'); // Меняем значок на крестик
+			searchIcon.classList.remove('fa-magnifying-glass')
+			searchIcon.classList.add('fa-times') // Меняем значок на крестик
 		} else {
-			searchIcon.classList.remove('fa-times');
-			searchIcon.classList.add('fa-magnifying-glass'); // Меняем значок обратно на лупу
+			searchIcon.classList.remove('fa-times')
+			searchIcon.classList.add('fa-magnifying-glass') // Меняем значок обратно на лупу
 		}
 
-		searchButton.classList.toggle('active');
-	});
+		searchButton.classList.toggle('active')
+	})
 
 	// Изначально скрыть поля формы
 	formFields.forEach((field) => {
-		field.style.display = 'none';
-	});
-});
+		field.style.display = 'none'
+	})
+})

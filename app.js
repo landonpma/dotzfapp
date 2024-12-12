@@ -89,7 +89,8 @@ db.serialize(() => {
             measures TEXT,
             status TEXT,
             source TEXT,
-            employee TEXT
+            employee TEXT,
+            deadline DATE
         )
     `)
 })
@@ -515,8 +516,8 @@ app.post('/save-table-data', (req, res) => {
 
 	const stmt = db.prepare(`
         INSERT INTO appeals 
-        (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
 	data.forEach(row => {
@@ -531,7 +532,7 @@ app.post('/save-table-data', (req, res) => {
 			: row[1]
 
 		if (formattedDate && row.every(cell => cell !== null && cell !== undefined && cell !== '')) {
-			stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10])
+			stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11])
 		}
 	})
 
@@ -577,18 +578,19 @@ app.post('/update-appeal', (req, res) => {
 		measures,
 		status,
 		source,
-		employee
+		employee,
+		deadline
 	} = req.body
 
 	const query = `
         UPDATE appeals
-        SET date = ?, card_number = ?, settlement = ?, address = ?, coordinates = ?, topic = ?, measures = ?, status = ?, source = ?, employee = ?
+        SET date = ?, card_number = ?, settlement = ?, address = ?, coordinates = ?, topic = ?, measures = ?, status = ?, source = ?, employee = ?, deadline = ?
         WHERE num = ?
     `
 
 	db.run(
 		query,
-		[date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, num],
+		[date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline, num],
 		function(err) {
 			if (err) {
 				console.error('Ошибка обновления данных:', err)
@@ -626,12 +628,13 @@ app.post('/add-appeal', (req, res) => {
 		measures,
 		status,
 		source,
-		employee
+		employee,
+		deadline
 	} = req.body
 
 	const query = `
-        INSERT INTO appeals (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO appeals (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
 	db.run(query, [num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee], function(err) {
@@ -674,7 +677,7 @@ app.get('/search-appeals', (req, res) => {
 	const limit = parseInt(req.query.limit, 10) || 20
 
 	// Разрешенные столбцы для поиска
-	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee']
+	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee', 'deadline']
 	if (!validColumns.includes(column)) {
 		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' })
 	}
@@ -764,7 +767,8 @@ app.get('/get-appeals', (req, res) => {
 						measures: row.measures,
 						status: row.status,
 						source: row.source,
-						employee: row.employee
+						employee: row.employee,
+						deadline: row.deadline
 					}))
 
 					res.json({
@@ -816,7 +820,7 @@ app.get('/filter-appeals', (req, res) => {
 app.get('/latest-appeals', (req, res) => {
 	const limit = 5 // Количество записей для возврата
 	const query = `
-        SELECT num, date, card_number, settlement, coordinates, topic, address, status, source, employee 
+        SELECT num, date, card_number, settlement, coordinates, topic, address, status, source, employee, deadline 
         FROM appeals 
         ORDER BY CAST(num AS INTEGER) DESC 
         LIMIT ?

@@ -16,6 +16,7 @@
                 <p><strong>Тема обращения:</strong> <span id="modal-topic"></span></p>
                 <p><strong>Принятые меры:</strong> <span id="modal-measures"></span></p>
                 <p><strong>Статус:</strong> <span id="modal-status"></span></p>
+                <p><strong>Срок выполнения:</strong> <span id="modal-deadline"></span></p>
                 <p><strong>Источник:</strong> <span id="modal-source"></span></p>
                 <p><strong>Ответственный сотрудник:</strong> <span id="modal-employee"></span></p>
             </div>
@@ -94,7 +95,21 @@
                 </div>
                 <div class="form-group">
                     <label for="edit-status">Статус:</label>
-                    <input type="text" id="edit-status" class="form-control">
+                    <select id="edit-status" class="form-control">
+                        <option value="" disabled selected>Выберите статус</option>
+                        <option value="Опубликован">Опубликован</option>
+                        <option value="Перенаправлен Арбитру">Перенаправлен Арбитру</option>
+                        <option value="На утверждении">На утверждении</option>
+                        <option value="Доп. контроль">Доп. контроль</option>
+                        <option value="В работе">В работе</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-deadline">Срок выполнения:</label>
+                    <div class="input-group">
+                        <input type="date" id="edit-deadline" class="form-control">
+                        <button id="clear-deadline-button" class="btn btn-outline-secondary" type="button">Очистить</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="edit-source">Источник:</label>
@@ -188,6 +203,10 @@
                 <div class="form-group">
                     <label for="add-status">Статус:</label>
                     <input type="text" id="add-status" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-deadline">Срок выполнения:</label>
+                    <input type="date" id="add-deadline" class="form-control">
                 </div>
                 <div class="form-group">
                     <label for="add-source">Источник:</label>

@@ -6,7 +6,7 @@
     position: absolute;
     right: 0; /* Привязываем правый край меню к кнопке */
     bottom: calc(100% + 10px);
-    width: 280px; /* Ширина меню */
+    width: 400px; /* Ширина меню */
     background-color: white;
     border: 1px solid #ddd;
     padding: 30px 30px 20px 30px;
