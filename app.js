@@ -113,6 +113,11 @@ app.use((req, res, next) => {
 })
 
 // Маршрут страницы логина
+app.get('/main', (req, res) => {
+	res.render('main')
+})
+
+// Маршрут страницы логина
 app.get('/login', (req, res) => {
 	res.render('login')
 })
@@ -158,7 +163,7 @@ app.get('/', (req, res) => {
 	if (req.session.user) {
 		res.redirect('/dashboard')
 	} else {
-		res.redirect('/login')
+		res.redirect('/main')
 	}
 })
 
