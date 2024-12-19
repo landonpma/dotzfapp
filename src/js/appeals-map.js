@@ -98,18 +98,7 @@ ymaps.ready().then(function() {
 
 		if (object) {
 			// Заполняем данные модального окна
-			document.getElementById('modal-num').textContent = object.properties.number || 'Не указано'
-			document.getElementById('modal-date').textContent = object.properties.date || 'Не указано'
-			document.getElementById('modal-card-number').textContent = object.properties.card_number || 'Не указано'
-			document.getElementById('modal-settlement').textContent = object.properties.settlement || 'Не указано'
-			document.getElementById('modal-address').textContent = object.properties.address || 'Не указано'
-			document.getElementById('modal-coordinates').textContent = object.geometry.coordinates.join(', ') || 'Не указано'
-			document.getElementById('modal-topic').textContent = object.properties.topic || 'Не указано'
-			document.getElementById('modal-measures').textContent = object.properties.measures || 'Не указано'
-			document.getElementById('modal-status').textContent = object.properties.status || 'Не указано'
-			document.getElementById('modal-source').textContent = object.properties.source || 'Не указано'
-			document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано'
-			document.getElementById('modal-deadline').textContent = object.properties.deadline || 'Не указано'
+			fillModalData(object)
 
 			// Открываем модальное окно
 			const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'))
@@ -158,18 +147,7 @@ ymaps.ready().then(function() {
 					}
 
 					// Заполняем данные модального окна
-					document.getElementById('modal-num').textContent = object.properties.number || 'Не указано'
-					document.getElementById('modal-date').textContent = object.properties.date || 'Не указано'
-					document.getElementById('modal-card-number').textContent = object.properties.card_number || 'Не указано'
-					document.getElementById('modal-settlement').textContent = object.properties.settlement || 'Не указано'
-					document.getElementById('modal-address').textContent = object.properties.address || 'Не указано'
-					document.getElementById('modal-coordinates').textContent = object.geometry.coordinates.join(', ') || 'Не указано'
-					document.getElementById('modal-topic').textContent = object.properties.topic || 'Не указано'
-					document.getElementById('modal-measures').textContent = object.properties.measures || 'Не указано'
-					document.getElementById('modal-status').textContent = object.properties.status || 'Не указано'
-					document.getElementById('modal-source').textContent = object.properties.source || 'Не указано'
-					document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано'
-					document.getElementById('modal-deadline').textContent = object.properties.deadline || 'Не указано'
+					fillModalData(object)
 
 					// Открываем модальное окно
 					const detailsModal = new bootstrap.Modal(modalElement)
@@ -325,38 +303,38 @@ ymaps.ready().then(function() {
 
 function loadAppealsInProgress(url = '/get-appeals') {
 	// Отображение плашки
-	const filterBanner = document.getElementById('filterBanner');
-	const filterText = document.getElementById('filterText');
-	filterBanner.style.display = 'block';
-	filterText.textContent = 'Обращения со статусом: В работе';
+	const filterBanner = document.getElementById('filterBanner')
+	const filterText = document.getElementById('filterText')
+	filterBanner.style.display = 'block'
+	filterText.textContent = 'Обращения со статусом: В работе'
 
 	fetch(url)
 		.then(response => {
 			if (!response.ok) {
-				throw new Error(`HTTP Error: ${response.status}`);
+				throw new Error(`HTTP Error: ${response.status}`)
 			}
-			return response.json();
+			return response.json()
 		})
 		.then(data => {
 
 			if (!data.success) {
-				throw new Error(data.message || 'Неизвестная ошибка');
+				throw new Error(data.message || 'Неизвестная ошибка')
 			}
 
 			if (!data.appeals || !Array.isArray(data.appeals)) {
-				throw new Error('Неверный формат данных: отсутствует массив appeals');
+				throw new Error('Неверный формат данных: отсутствует массив appeals')
 			}
 
 			// Исключаем обращения с определёнными статусами
-			const excludedStatuses = ['Опубликован', 'Перенаправлен Арбитру'];
-			const filteredAppeals = data.appeals.filter(appeal => !excludedStatuses.includes(appeal.status));
+			const excludedStatuses = ['Опубликован', 'Перенаправлен Арбитру']
+			const filteredAppeals = data.appeals.filter(appeal => !excludedStatuses.includes(appeal.status))
 
 			const features = filteredAppeals.map((appeal) => {
-				const coordinates = parseCoordinates(appeal.coordinates);
+				const coordinates = parseCoordinates(appeal.coordinates)
 
 				if (!coordinates) {
-					console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`);
-					return null;
+					console.warn(`Пропущен объект с некорректными координатами: ${appeal.id}`)
+					return null
 				}
 
 				return {
@@ -376,26 +354,27 @@ function loadAppealsInProgress(url = '/get-appeals') {
 						source: appeal.source,
 						employee: appeal.employee,
 						deadline: appeal.deadline,
+						comment: appeal.comment,
 						color: getColorByStatus(appeal.status),
 						balloonContent: createBalloonContent(appeal),
 						hintContent: appeal.num
 					}
-				};
-			}).filter(Boolean);
+				}
+			}).filter(Boolean)
 
-			objectManager.removeAll();
+			objectManager.removeAll()
 
 			objectManager.add({
 				type: 'FeatureCollection',
 				features: features
-			});
+			})
 
-			const bounds = objectManager.getBounds();
+			const bounds = objectManager.getBounds()
 			if (bounds) {
-				myMap.setBounds(bounds, { checkZoomRange: true });
+				myMap.setBounds(bounds, { checkZoomRange: true })
 			}
 		})
-		.catch(error => console.error('Ошибка загрузки данных:', error));
+		.catch(error => console.error('Ошибка загрузки данных:', error))
 }
 
 function loadAppeals(url = '/get-appeals') {
@@ -442,6 +421,7 @@ function loadAppeals(url = '/get-appeals') {
 						source: appeal.source,
 						employee: appeal.employee,
 						deadline: appeal.deadline,
+						comment: appeal.comment,
 						color: getColorByStatus(appeal.status),
 						balloonContent: createBalloonContent(appeal),
 						hintContent: appeal.num
@@ -506,7 +486,25 @@ function createBalloonContent(appeal) {
 	if (appeal.deadline) content += `<strong>Срок исполнения:</strong> ${appeal.deadline}<br>`
 	if (appeal.source) content += `<strong>Источник:</strong> ${appeal.source}<br>`
 	if (appeal.employee) content += `<strong>Ответственный:</strong> ${appeal.employee}<br>`
+	if (appeal.comment) content += `<strong>Комментарий:</strong> ${appeal.comment}<br>`
 	return content
+}
+
+// Функция заполнения данными модального окна
+function fillModalData(object) {
+	document.getElementById('modal-num').textContent = object.properties.number || 'Не указано'
+	document.getElementById('modal-date').textContent = object.properties.date || 'Не указано'
+	document.getElementById('modal-card-number').textContent = object.properties.card_number || 'Не указано'
+	document.getElementById('modal-settlement').textContent = object.properties.settlement || 'Не указано'
+	document.getElementById('modal-address').textContent = object.properties.address || 'Не указано'
+	document.getElementById('modal-coordinates').textContent = object.geometry.coordinates.join(', ') || 'Не указано'
+	document.getElementById('modal-topic').textContent = object.properties.topic || 'Не указано'
+	document.getElementById('modal-measures').textContent = object.properties.measures || 'Не указано'
+	document.getElementById('modal-status').textContent = object.properties.status || 'Не указано'
+	document.getElementById('modal-source').textContent = object.properties.source || 'Не указано'
+	document.getElementById('modal-employee').textContent = object.properties.employee || 'Не указано'
+	document.getElementById('modal-deadline').textContent = object.properties.deadline || 'Не указано'
+	document.getElementById('modal-comment').textContent = object.properties.comment || 'Не указано'
 }
 
 // Открытие модального окна редактирования
@@ -531,143 +529,71 @@ document.getElementById('edit-button').addEventListener('click', function() {
 	document.getElementById('edit-source').value = document.getElementById('modal-source').textContent || ''
 	document.getElementById('edit-employee').value = document.getElementById('modal-employee').textContent || ''
 	document.getElementById('edit-deadline').value = document.getElementById('modal-deadline').textContent || ''
+	document.getElementById('edit-comment').value = document.getElementById('modal-comment').textContent || ''
 
 	// Открываем модальное окно редактирования
 	const editModal = new bootstrap.Modal(document.getElementById('editModal'))
 	editModal.show()
 })
 
-// Открытие модального окна подтверждения удаления
-document.getElementById('delete-button').addEventListener('click', function() {
-	const detailsModal = bootstrap.Modal.getInstance(document.getElementById('detailsModal'))
-	if (detailsModal) {
-		detailsModal.hide() // Закрываем окно с деталями
-	}
-
-	// Открываем модальное окно подтверждения удаления
-	const confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'))
-	confirmDeleteModal.show()
-
-	// Добавляем обработчик для подтверждения удаления
-	document.getElementById('confirmDeleteButton').onclick = function() {
-		const modalNum = document.getElementById('modal-num').textContent
-
-		fetch('/delete-appeal', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ num: modalNum })
-		})
-			.then(response => response.json())
-			.then(data => {
-				if (data.success) {
-					toastr.success('Обращение успешно удалено!')
-					location.reload()
-				} else {
-					toastr.error('Ошибка при удалении обращения: ' + data.message)
-				}
-			})
-			.catch(error => {
-				console.error('Ошибка при удалении обращения:', error)
-				toastr.error('Произошла ошибка при удалении.')
-			})
-	}
-})
-
-// Обработчик для сохранения изменений
-document.getElementById('save-edit-button').addEventListener('click', function() {
-	const editedData = {
-		num: document.getElementById('edit-num').value,
-		date: document.getElementById('edit-date').value,
-		card_number: document.getElementById('edit-card-number').value,
-		settlement: document.getElementById('edit-settlement').value,
-		address: document.getElementById('edit-address').value,
-		coordinates: document.getElementById('edit-coordinates').value,
-		topic: document.getElementById('edit-topic').value,
-		measures: document.getElementById('edit-measures').value,
-		status: document.getElementById('edit-status').value,
-		source: document.getElementById('edit-source').value,
-		employee: document.getElementById('edit-employee').value,
-		deadline: document.getElementById('edit-deadline').value
-	}
-
-	// Отправляем данные на сервер
-	fetch('/update-appeal', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(editedData)
-	})
-		.then(response => response.json())
-		.then(data => {
-			if (data.success) {
-				toastr.success('Изменения успешно сохранены!')
-				location.reload()
-			} else {
-				toastr.error('Ошибка при сохранении изменений: ' + data.message)
-			}
-		})
-		.catch(error => {
-			console.error('Ошибка при обновлении данных:', error)
-			toastr.error('Произошла ошибка при сохранении изменений.')
-		})
-})
 
 function filterAppeals(startDate, endDate, status) {
-	const url = new URL('/filter-appeals', window.location.origin);
+	const url = new URL('/filter-appeals', window.location.origin)
 
 	// Проверяем, что статус выбран
 	if ((startDate || endDate) && !status) {
-		toastr.warning('Для фильтрации по дате необходимо выбрать статус.');
-		return;
+		toastr.warning('Для фильтрации по дате необходимо выбрать статус.')
+		return
 	}
 
-	if (startDate) url.searchParams.append('startDate', startDate);
-	if (endDate) url.searchParams.append('endDate', endDate);
+	if (startDate) url.searchParams.append('startDate', startDate)
+	if (endDate) url.searchParams.append('endDate', endDate)
 
 	if (status) {
-		url.searchParams.append('status', status);
+		url.searchParams.append('status', status)
 
 		// Обновляем текст плашки
-		const filterBanner = document.getElementById('filterBanner');
-		const filterText = document.getElementById('filterText');
-		filterBanner.style.display = 'block';
+		const filterBanner = document.getElementById('filterBanner')
+		const filterText = document.getElementById('filterText')
+		filterBanner.style.display = 'block'
 
 		if (status === 'Все') {
-			filterText.textContent = 'Отображаются все обращения';
-			loadAppeals();
-			return; // Завершаем выполнение, чтобы не было двойного вызова
+			filterText.textContent = 'Отображаются все обращения'
+			loadAppeals()
+			return // Завершаем выполнение, чтобы не было двойного вызова
 		}
 		if (status === 'В работе') {
-			filterText.textContent = 'Отображаются обращения в работе';
-			loadAppealsInProgress();
-			return; // Завершаем выполнение, чтобы не было двойного вызова
+			filterText.textContent = 'Отображаются обращения в работе'
+			loadAppealsInProgress()
+			return // Завершаем выполнение, чтобы не было двойного вызова
 		} else {
-			filterText.textContent = `Обращения со статусом: ${status}`;
+			filterText.textContent = `Обращения со статусом: ${status}`
 		}
 	}
 
-	loadAppeals(url.toString());
+	loadAppeals(url.toString())
 }
 
 document.getElementById('applyDateFilter').addEventListener('click', function() {
 	// Получаем значения фильтров
-	const startDate = document.getElementById('startDate').value;
-	const endDate = document.getElementById('endDate').value;
+	const startDate = document.getElementById('startDate').value
+	const endDate = document.getElementById('endDate').value
 
-	const status = document.getElementById('statusFilter').value; // Значение фильтра по статусу
+	const status = document.getElementById('statusFilter').value // Значение фильтра по статусу
 
 	// Проверяем, что хотя бы один фильтр активен
 	if (!startDate && !endDate && !status) {
-		toastr.warning('Пожалуйста, выберите хотя бы один критерий фильтрации.');
-		return;
+		toastr.warning('Пожалуйста, выберите хотя бы один критерий фильтрации.')
+		return
 	}
 
 	// Проверяем, что выбран статус при фильтрации по дате
 	if ((startDate || endDate) && !status) {
-		toastr.warning('Для фильтрации по дате необходимо выбрать статус.');
-		return;
+		toastr.warning('Для фильтрации по дате необходимо выбрать статус.')
+		return
 	}
 
 	// Отправляем параметры на сервер
-	filterAppeals(startDate, endDate, status);
-});
+	filterAppeals(startDate, endDate, status)
+})
 

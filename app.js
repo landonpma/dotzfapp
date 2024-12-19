@@ -73,7 +73,7 @@ db.serialize(() => {
           distance TEXT,
           in_progress BOOLEAN DEFAULT 0,
           photo TEXT,
-          FOREIGN KEY(username) REFERENCES users(username)
+          FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
         )
     `)
 	db.run(`
@@ -90,7 +90,8 @@ db.serialize(() => {
             status TEXT,
             source TEXT,
             employee TEXT,
-            deadline DATE
+            deadline DATE,
+            comment TEXT
         )
     `)
 })
@@ -521,8 +522,8 @@ app.post('/save-table-data', (req, res) => {
 
 	const stmt = db.prepare(`
         INSERT INTO appeals 
-        (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline, comment) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
 	data.forEach(row => {
@@ -537,7 +538,7 @@ app.post('/save-table-data', (req, res) => {
 			: row[1]
 
 		if (formattedDate && row.every(cell => cell !== null && cell !== undefined && cell !== '')) {
-			stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11])
+			stmt.run(row[0], formattedDate, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12])
 		}
 	})
 
@@ -584,18 +585,19 @@ app.post('/update-appeal', (req, res) => {
 		status,
 		source,
 		employee,
-		deadline
+		deadline,
+		comment
 	} = req.body
 
 	const query = `
-        UPDATE appeals
-        SET date = ?, card_number = ?, settlement = ?, address = ?, coordinates = ?, topic = ?, measures = ?, status = ?, source = ?, employee = ?, deadline = ?
-        WHERE num = ?
-    `
+    	UPDATE appeals
+    	SET date = ?, card_number = ?, settlement = ?, address = ?, coordinates = ?, topic = ?, measures = ?, status = ?, source = ?, employee = ?, deadline = ?, comment = ?
+    	WHERE num = ?
+		`
 
 	db.run(
 		query,
-		[date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline, num],
+		[date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline, comment, num],
 		function(err) {
 			if (err) {
 				console.error('Ошибка обновления данных:', err)
@@ -634,15 +636,16 @@ app.post('/add-appeal', (req, res) => {
 		status,
 		source,
 		employee,
-		deadline
+		deadline,
+		comment
 	} = req.body
 
 	const query = `
-        INSERT INTO appeals (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
+    	INSERT INTO appeals (num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline, comment)
+    	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`
 
-	db.run(query, [num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee], function(err) {
+	db.run(query, [num, date, card_number, settlement, address, coordinates, topic, measures, status, source, employee, deadline, comment], function(err) {
 		if (err) {
 			console.error('Ошибка добавления нового обращения:', err)
 			return res.json({ success: false, message: 'Ошибка добавления нового обращения' })
@@ -676,19 +679,19 @@ app.post('/delete-appeal', (req, res) => {
 })
 
 app.get('/search-appeals', (req, res) => {
-	const query = req.query.query || '';
-	const column = req.query.column || 'num';
-	const offset = parseInt(req.query.offset, 10) || 0;
-	const limit = parseInt(req.query.limit, 10) || 20;
+	const query = req.query.query || ''
+	const column = req.query.column || 'num'
+	const offset = parseInt(req.query.offset, 10) || 0
+	const limit = parseInt(req.query.limit, 10) || 20
 
 	// Разрешенные столбцы для поиска
-	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee', 'deadline'];
+	const validColumns = ['num', 'date', 'card_number', 'settlement', 'address', 'coordinates', 'topic', 'measures', 'status', 'source', 'employee', 'deadline']
 	if (!validColumns.includes(column)) {
-		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' });
+		return res.status(400).json({ success: false, message: 'Неверный столбец для поиска' })
 	}
 
-	let sqlQuery;
-	let params;
+	let sqlQuery
+	let params
 
 	if (column === 'num') {
 		// Если поиск по столбцу num, выполняем точный поиск
@@ -696,57 +699,57 @@ app.get('/search-appeals', (req, res) => {
             SELECT * FROM appeals
             WHERE ${column} = ?
             ORDER BY num DESC
-            LIMIT ? OFFSET ?`;
-		params = [query, limit, offset];
+            LIMIT ? OFFSET ?`
+		params = [query, limit, offset]
 	} else {
 		// Поиск с использованием LIKE для других столбцов
 		sqlQuery = `
             SELECT * FROM appeals
             WHERE LOWER(${column}) LIKE LOWER(?)
             ORDER BY num DESC
-            LIMIT ? OFFSET ?`;
-		params = [`%${query}%`, limit, offset];
+            LIMIT ? OFFSET ?`
+		params = [`%${query}%`, limit, offset]
 	}
 
 	db.all(sqlQuery, params, (err, rows) => {
 		if (err) {
-			console.error('Ошибка поиска:', err);
-			return res.status(500).json({ success: false, message: 'Ошибка поиска данных' });
+			console.error('Ошибка поиска:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка поиска данных' })
 		}
 
 		// Подсчет общего количества строк
-		let countQuery;
-		let countParams;
+		let countQuery
+		let countParams
 
 		if (column === 'num') {
 			countQuery = `
                 SELECT COUNT(*) as total FROM appeals
-                WHERE ${column} = ?`;
-			countParams = [query];
+                WHERE ${column} = ?`
+			countParams = [query]
 		} else {
 			countQuery = `
                 SELECT COUNT(*) as total FROM appeals
-                WHERE LOWER(${column}) LIKE LOWER(?)`;
-			countParams = [`%${query}%`];
+                WHERE LOWER(${column}) LIKE LOWER(?)`
+			countParams = [`%${query}%`]
 		}
 
 		db.get(countQuery, countParams, (countErr, countResult) => {
 			if (countErr) {
-				console.error('Ошибка подсчета:', countErr);
-				return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' });
+				console.error('Ошибка подсчета:', countErr)
+				return res.status(500).json({ success: false, message: 'Ошибка подсчета данных' })
 			}
 
-			res.json({ success: true, data: rows, total: countResult.total });
-		});
-	});
-});
+			res.json({ success: true, data: rows, total: countResult.total })
+		})
+	})
+})
 
 
 app.get('/get-appeals', (req, res) => {
 	const query = 'SELECT * FROM appeals'
 	const countQuery = 'SELECT COUNT(*) as total FROM appeals'
-	const completedQuery = 'SELECT COUNT(*) as completed FROM appeals WHERE status IN (\'Опубликован\', \'Перенаправлен Арбитру\', \'На утверждении\')';
-	const inProgressQuery = 'SELECT COUNT(*) as inProgress FROM appeals WHERE status NOT IN (\'Опубликован\', \'Перенаправлен Арбитру\', \'На утверждении\')';
+	const completedQuery = 'SELECT COUNT(*) as completed FROM appeals WHERE status IN (\'Опубликован\', \'Перенаправлен Арбитру\', \'На утверждении\')'
+	const inProgressQuery = 'SELECT COUNT(*) as inProgress FROM appeals WHERE status NOT IN (\'Опубликован\', \'Перенаправлен Арбитру\', \'На утверждении\')'
 
 	db.all(query, [], (err, rows) => {
 		if (err) {
@@ -796,7 +799,8 @@ app.get('/get-appeals', (req, res) => {
 						status: row.status,
 						source: row.source,
 						employee: row.employee,
-						deadline: row.deadline
+						deadline: row.deadline,
+						comment: row.comment
 					}))
 
 					res.json({
@@ -813,37 +817,37 @@ app.get('/get-appeals', (req, res) => {
 })
 
 app.get('/filter-appeals', (req, res) => {
-	const { startDate, endDate, status, districts } = req.query;
+	const { startDate, endDate, status, districts } = req.query
 
 	// Базовый запрос
-	let query = 'SELECT * FROM appeals WHERE 1=1';
-	const params = [];
+	let query = 'SELECT * FROM appeals WHERE 1=1'
+	const params = []
 
 	if (startDate && endDate) {
-		query += ' AND date BETWEEN ? AND ?';
-		params.push(startDate, endDate);
+		query += ' AND date BETWEEN ? AND ?'
+		params.push(startDate, endDate)
 	}
 
 	if (status) {
-		query += ' AND status = ?';
-		params.push(status);
+		query += ' AND status = ?'
+		params.push(status)
 	}
 
 	if (districts) {
-		const districtsArray = districts.split(',');
-		query += ` AND district IN (${districtsArray.map(() => '?').join(',')})`;
-		params.push(...districtsArray);
+		const districtsArray = districts.split(',')
+		query += ` AND district IN (${districtsArray.map(() => '?').join(',')})`
+		params.push(...districtsArray)
 	}
 
 	db.all(query, params, (err, rows) => {
 		if (err) {
-			console.error('Ошибка фильтрации данных:', err);
-			return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' });
+			console.error('Ошибка фильтрации данных:', err)
+			return res.status(500).json({ success: false, message: 'Ошибка при выполнении запроса' })
 		}
 
-		res.json({ success: true, appeals: rows }); // Возвращаем поле `appeals`, как ожидает клиент
-	});
-});
+		res.json({ success: true, appeals: rows }) // Возвращаем поле `appeals`, как ожидает клиент
+	})
+})
 
 app.get('/latest-appeals', (req, res) => {
 	const limit = 5 // Количество записей для возврата

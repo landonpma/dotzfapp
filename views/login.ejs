@@ -20,7 +20,7 @@
             </button>
         </div>
     <% } %>
-    <h1 class="text-center">Вход в систему</h1>
+    <img src="images/logo.png" alt="Логотип" style="width: 100%" class="mb-4">
 
     <form action="/login" method="POST">
         <div class="form-group">
@@ -32,13 +32,13 @@
             <div class="input-group">
                 <input type="password" class="form-control" id="password" name="password" required>
                 <div class="input-group-append">
-                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">Показать</button>
+                    <button class="btn btn-outline-primary" type="button" id="togglePassword" style="width: 90px;">Показать</button>
                 </div>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary">Войти</button>
-        <!--<p class="link">Еще нет учетной записи? <a href="/register">Зарегистрироваться</a></p> -->
+        <button type="submit" class="btn btn-outline-primary">Войти</button>
     </form>
+    <a href="/main" class="btn btn-outline-secondary mt-3" style="width: 100%">На главную</a>
 </div>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

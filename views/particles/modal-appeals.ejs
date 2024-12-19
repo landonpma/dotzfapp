@@ -19,6 +19,7 @@
                 <p><strong>Срок исполнения:</strong> <span id="modal-deadline"></span></p>
                 <p><strong>Источник:</strong> <span id="modal-source"></span></p>
                 <p><strong>Ответственный сотрудник:</strong> <span id="modal-employee"></span></p>
+                <p><strong>Комментарий:</strong> <span id="modal-comment"></span></p>
             </div>
             <div class="modal-footer">
                 <button id="edit-button" class="btn btn-primary">Редактировать</button>
@@ -51,7 +52,7 @@
                     <input type="text" id="edit-card-number" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label for="add-settlement">Поселение:</label>
+                    <label for="edit-settlement">Поселение:</label>
                     <select id="edit-settlement" class="form-control">
                         <option value="" disabled selected>Выберите поселение</option>
                         <option value="г.о. Троицк">г.о. Троицк</option>
@@ -123,6 +124,10 @@
                     <label for="edit-employee">Ответственный сотрудник:</label>
                     <input type="text" id="edit-employee" class="form-control">
                 </div>
+                <div class="form-group">
+                    <label for="edit-comment">Комментарий:</label>
+                    <textarea id="edit-comment" class="form-control"></textarea>
+                </div>
             </div>
             <div class="modal-footer">
                 <button id="save-edit-button" class="btn btn-secondary">Сохранить изменения</button>
@@ -188,7 +193,7 @@
                     <label for="add-coordinates">Координаты:</label>
                     <div class="input-group">
                         <input type="text" id="add-coordinates" class="form-control">
-                        <button class="btn btn-custom" type="button" onclick="toggleMap('add-coordinates')">Выбрать на карте</button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="toggleMap('add-coordinates')">Выбрать на карте</button>
                     </div>
                 </div>
                 <div id="map" style="width: 100%; height: 400px; display: none; margin-bottom: 10px; margin-top: 10px;"></div>
@@ -206,7 +211,14 @@
                 </div>
                 <div class="form-group">
                     <label for="add-status">Статус:</label>
-                    <input type="text" id="add-status" class="form-control">
+                    <select id="add-status" class="form-control">
+                        <option value="" disabled selected>Выберите статус</option>
+                        <option value="Опубликован">Опубликован</option>
+                        <option value="Перенаправлен Арбитру">Перенаправлен Арбитру</option>
+                        <option value="На утверждении">На утверждении</option>
+                        <option value="Доп. контроль">Доп. контроль</option>
+                        <option value="В работе">В работе</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="add-deadline">Срок исполнения:</label>
@@ -219,6 +231,10 @@
                 <div class="form-group">
                     <label for="add-employee">Ответственный сотрудник:</label>
                     <input type="text" id="add-employee" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-comment">Комментарий:</label>
+                    <textarea id="add-comment" class="form-control"></textarea>
                 </div>
             </div>
             <div class="modal-footer">

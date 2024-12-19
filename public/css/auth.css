@@ -1,6 +1,14 @@
 body {
-  background: url('../images/background.png') no-repeat center center fixed;
-  background-size: cover;
+  background: linear-gradient(-45deg,
+  #a18cd1,  /* Фиолетовый */
+  #6e8fd8,  /* Переход к светло-синему */
+  #008fad,  /* Бирюзовый */
+  #009fb8,  /* Насыщенный бирюзовый */
+  #c6e3e5,  /* Голубовато-белый */
+  #ffffff   /* Белый */
+  );
+  background-size: 400% 400%;
+  animation: gradient-animation 10s ease infinite;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -8,34 +16,65 @@ body {
   margin: 0;
 }
 
+@keyframes gradient-animation {
+  0% {
+    background-position: 0 50%;
+  }
+  25% {
+    background-position: 50% 75%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 25%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
 .container {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.90);
   padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   width: 100%;
+  transition: transform 0.3s ease;
+}
+
+.container:hover {
+  transform: scale(1.02);
 }
 
 .container h1 {
-  font-size: 24px;
+  font-size: 26px;
   margin-bottom: 20px;
+  color: #333;
 }
 
 .container .form-group {
   margin-bottom: 15px;
 }
 
-.container .form-check {
-  margin-bottom: 15px;
+.container .btn-outline-primary {
+  width: 100%;
 }
 
-.container .btn-primary {
+.container .btn-secondary {
   width: 100%;
+  margin-top: 10px;
 }
 
 .container .link {
   display: block;
   text-align: center;
-  margin-top: 10px;
+  margin-top: 15px;
+  color: #555;
+  text-decoration: none;
+}
+
+.container .link:hover {
+  text-decoration: underline;
 }

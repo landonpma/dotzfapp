@@ -52,7 +52,8 @@ $(document).ready(function() {
 							row.status,
 							row.source,
 							row.employee,
-							row.deadline
+							row.deadline,
+							row.comment
 						]).draw(false)
 					})
 
@@ -115,7 +116,8 @@ $(document).ready(function() {
 							row.status,
 							row.source,
 							row.employee,
-							row.deadline
+							row.deadline,
+							row.comment
 						]).draw(false)
 					})
 					totalSearchResults = result.total || result.data.length
@@ -166,6 +168,7 @@ $(document).ready(function() {
 			$('#modal-source').text(rowData[9]) // Источник
 			$('#modal-employee').text(rowData[10]) // Ответственный сотрудник
 			$('#modal-deadline').text(rowData[11])
+			$('#modal-comment').text(rowData[12])
 			$('#detailsModal').modal('show')
 		}
 	})
@@ -198,7 +201,8 @@ $(document).ready(function() {
 					row.status,
 					row.source,
 					row.employee,
-					row.deadline
+					row.deadline,
+					row.comment
 				])
 
 				// Добавление заголовков
@@ -239,7 +243,8 @@ $(document).ready(function() {
 			status: $('#modal-status').text(),
 			source: $('#modal-source').text(),
 			employee: $('#modal-employee').text(),
-			deadline: $('#modal-deadline').text()
+			deadline: $('#modal-deadline').text(),
+			comment: $('#modal-comment').text()
 		}
 
 		// Заполнить поля формы
@@ -255,6 +260,7 @@ $(document).ready(function() {
 		$('#edit-source').val(rowData.source)
 		$('#edit-employee').val(rowData.employee)
 		$('#edit-deadline').val(rowData.deadline)
+		$('#edit-comment').val(rowData.comment)
 
 		// Закрыть главное модальное окно
 		$('#detailsModal').modal('hide')
@@ -275,7 +281,8 @@ $(document).ready(function() {
 			status: $('#edit-status').val(),
 			source: $('#edit-source').val(),
 			employee: $('#edit-employee').val(),
-			deadline: $('#edit-deadline').val()
+			deadline: $('#edit-deadline').val(),
+			comment: $('#edit-comment').val()
 		}
 
 		// Проверка формата координат
@@ -295,7 +302,6 @@ $(document).ready(function() {
 					toastr.success('Изменения успешно сохранены!')
 					$('#editModal').modal('hide')
 
-					// Обновляем таблицу с использованием маршрута /get-appeals-part
 					table.clear().draw() // Очистить таблицу
 					fetch('/get-appeals-part')
 						.then(response => response.json())
@@ -314,7 +320,8 @@ $(document).ready(function() {
 										row.status,
 										row.source,
 										row.employee,
-										row.deadline
+										row.deadline,
+										row.comment
 									]).draw(false)
 								})
 							} else {
@@ -356,6 +363,7 @@ $(document).ready(function() {
 		$('#add-source').val('')
 		$('#add-employee').val('')
 		$('#add-deadline').val('')
+		$('#add-comment').val('')
 
 		// Получить следующий номер обращения с сервера
 		fetch('/get-next-appeal-number')
@@ -388,7 +396,8 @@ $(document).ready(function() {
 			status: $('#add-status').val(),
 			source: $('#add-source').val(),
 			employee: $('#add-employee').val(),
-			deadline: $('#add-deadline').val()
+			deadline: $('#add-deadline').val(),
+			comment: $('#add-comment').val()
 		}
 
 		// Проверяем формат координат
