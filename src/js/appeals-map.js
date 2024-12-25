@@ -3,7 +3,7 @@ let objectManager
 
 ymaps.ready().then(function() {
 	myMap = new ymaps.Map('map', {
-		center: [55.39, 37.33],
+		center: [55.39, 37.18],
 		zoom: 10,
 		controls: []
 	}, {

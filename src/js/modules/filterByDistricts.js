@@ -22,7 +22,7 @@ ymaps.modules.define('ext.filterByDistricts', [], function(provide) {
 				filteredFeatures.forEach(feature => {
 					feature.options = {
 						strokeColor: '#007bff',
-						strokeWidth: 3,
+						strokeWidth: 2,
 						fillOpacity: 0.1,
 						fillColor: '#0000FF'
 					}

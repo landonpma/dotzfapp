@@ -17,6 +17,21 @@
     font-weight: bold;
 }
 
+.filter-content-archive {
+    position: absolute;
+    right: 0; /* Привязываем правый край меню к кнопке */
+    bottom: calc(100% + 10px);
+    width: 300px; /* Ширина меню */
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 30px 30px 20px 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    z-index: 1000;
+    display: none; /* Скрыто по умолчанию */
+    font-weight: bold;
+}
+
 .custom-checkbox-wrapper {
     margin-bottom: 10px;
 }
@@ -71,7 +86,7 @@
 }
 
 /* Стили для кнопки раскрытия */
-#toggleFilterMenu {
+#toggleFilterMenu, #yeartoggleFilterMenu {
     padding: 10px 20px;
     border: none;
     border-radius: 25px; /* Скругленные углы */
@@ -86,7 +101,7 @@
     transition: background-color 0.3s, color 0.3s; /* Плавный переход */
 }
 
-#toggleFilterMenu:hover {
+#toggleFilterMenu:hover, #yeartoggleFilterMenu:hover {
     background-color: #0078ff;
     color: #ffffff;
 }
@@ -121,6 +136,7 @@
 .form-select {
     font-size: 14px;
 }
+
 
 
 

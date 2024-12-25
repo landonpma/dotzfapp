@@ -77,6 +77,29 @@ db.serialize(() => {
         )
     `)
 	db.run(`
+        CREATE TABLE IF NOT EXISTS lines_2024 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT,
+          coordinates TEXT,
+          work_type TEXT,
+          comment TEXT,
+          line_color TEXT,
+          type TEXT,
+          created_at TEXT,
+          completed BOOLEAN DEFAULT 0,
+          work_address TEXT,
+          work_volume TEXT,
+          start_date TEXT,
+          end_date TEXT,
+          equipment TEXT,
+          equipment_count INTEGER,
+          distance TEXT,
+          in_progress BOOLEAN DEFAULT 0,
+          photo TEXT,
+          FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+        )
+    `)
+	db.run(`
         CREATE TABLE IF NOT EXISTS appeals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             num INTEGER,
@@ -310,9 +333,10 @@ app.post('/save-line', (req, res) => {
 
 // Получение линий
 app.get('/get-lines', (req, res) => {
-	const { workTypes, district } = req.query
+	const { workTypes, district, table } = req.query
+	const selectedTable = table === 'lines_2024' ? 'lines_2024' : 'lines'
 
-	let query = 'SELECT * FROM lines'
+	let query = `SELECT * FROM ${selectedTable}`
 	let params = []
 
 	if (workTypes && workTypes !== 'all') {
@@ -347,39 +371,39 @@ app.post('/update-line', (req, res) => {
 		type,
 		completed,
 		inProgress,
-		startDate, // Дата начала работы из запроса
+		startDate,  // Дата начала работы из запроса
 		endDate,
 		equipment,
 		equipmentCount
-	} = req.body
+	} = req.body;
 
-	// Получаем текущую дату начала из базы данных, если она уже есть
+	// Получаем текущую дату начала из базы данных
 	db.get(`SELECT start_date FROM lines WHERE id = ?`, [id], (err, row) => {
 		if (err) {
-			console.error('Ошибка получения текущей даты начала:', err)
-			return res.json({ success: false, message: 'Ошибка получения текущей даты начала: ' + err.message })
+			console.error('Ошибка получения текущей даты начала:', err);
+			return res.json({ success: false, message: 'Ошибка получения текущей даты начала: ' + err.message });
 		}
 
-		// Если дата начала уже существует, сохраняем её, иначе используем новую дату
-		const finalStartDate = row && row.start_date ? row.start_date : startDate
+		// Условие обновления: Если передана новая дата, используем её, иначе берём старую
+		const finalStartDate = (startDate !== undefined) ? startDate : (row && row.start_date) || null;
 
-		// Обновляем объект, включая неизменную дату начала, если она уже была сохранена
+		// Обновляем объект, включая дату начала (новую или существующую)
 		const query = `
             UPDATE lines
             SET work_type = ?, comment = ?, coordinates = ?, line_color = ?, type = ?, completed = ?, in_progress = ?, start_date = ?, end_date = ?, equipment = ?, equipment_count = ?
             WHERE id = ?
-        `
-		const params = [workType, comment, coordinates, lineColor, type, completed, inProgress, finalStartDate, endDate, equipment, equipmentCount, id]
+        `;
+		const params = [workType, comment, coordinates, lineColor, type, completed, inProgress, finalStartDate, endDate, equipment, equipmentCount, id];
 
 		db.run(query, params, function(err) {
 			if (err) {
-				console.error('Ошибка обновления объекта:', err)
-				return res.json({ success: false, message: 'Ошибка обновления объекта: ' + err.message })
+				console.error('Ошибка обновления объекта:', err);
+				return res.json({ success: false, message: 'Ошибка обновления объекта: ' + err.message });
 			}
-			res.json({ success: true, message: 'Объект успешно обновлен.' })
-		})
-	})
-})
+			res.json({ success: true, message: 'Объект успешно обновлен.' });
+		});
+	});
+});
 
 // Удаление линии
 app.post('/delete-line', (req, res) => {

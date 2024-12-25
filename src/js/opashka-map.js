@@ -2,7 +2,7 @@ let myMap
 
 ymaps.ready(['ext.paintOnMap']).then(function() {
 	myMap = new ymaps.Map('map', {
-		center: [55.39, 37.33],
+		center: [55.39, 37.18],
 		zoom: 10,
 		controls: []
 	}, {
@@ -211,100 +211,111 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 	completedCheckbox.addEventListener('change', function() {
 		const isChecked = completedCheckbox.checked
 		additionalFields.style.display = isChecked ? 'block' : 'none'
+
+		if (isChecked) {
+			inProgressCheckbox.checked = true
+			inProgressStartDate.style.display = 'block'
+
+			if (currentEditObject && currentEditObject.startDate) {
+				inProgressStartDate.value = currentEditObject.startDate
+			} else {
+				inProgressStartDate.value = ''  // Если даты нет, поле остаётся пустым
+			}
+		} else {
+			// Сбрасываем чекбокс и скрываем поле даты
+			inProgressCheckbox.checked = false
+			inProgressStartDate.style.display = 'none'
+			inProgressStartDate.value = ''  // Очистка даты
+		}
 	})
 
-	saveEditButton.onclick = function() {
+	saveEditButton.onclick = function () {
 		if (currentEditObject) {
-			if (completedCheckbox.checked) {
-				// Проверяем, заполнены ли все необходимые поля для завершенного объекта
-				if (!endDateInput.value || !equipmentInput.value || !equipmentCountInput.value) {
-					showMessageModal('Пожалуйста, заполните все обязательные поля перед сохранением завершенного объекта.')
-					return
-				}
 
-				// Устанавливаем данные завершенного объекта
-				currentEditObject.endDate = endDateInput.value // Дата завершения работы
-				currentEditObject.equipment = equipmentInput.value // Оборудование
-				currentEditObject.equipmentCount = parseInt(equipmentCountInput.value, 10) // Количество оборудования
-				currentEditObject.lineColor = '#00FF00' // Устанавливаем цвет для завершенного объекта
-				currentEditObject.completed = 1 // Отмечаем объект как завершенный
-				currentEditObject.inProgress = 0 // Сбрасываем статус выполнения
-			} else if (inProgressCheckbox.checked) {
-				// Проверяем, заполнено ли поле даты начала для объекта в процессе выполнения
-				if (!inProgressStartDate.value) {
-					showMessageModal('Пожалуйста, укажите дату начала для объекта в процессе выполнения.')
-					return
-				}
-
-				// Устанавливаем данные для объекта в процессе выполнения
-				currentEditObject.startDate = inProgressStartDate.value // Дата начала работы
-				currentEditObject.lineColor = '#0000FF' // Устанавливаем цвет для объектов в процессе выполнения
-				currentEditObject.completed = 0 // Сбрасываем статус завершения
-				currentEditObject.inProgress = 1 // Отмечаем объект как в процессе выполнения
-				currentEditObject.endDate = null // Сбрасываем дату завершения
-				currentEditObject.equipment = null
-				currentEditObject.equipmentCount = null
-			} else {
-				// Сбрасываем данные, если оба чекбокса не установлены
-				currentEditObject.endDate = null
-				currentEditObject.equipment = null
-				currentEditObject.equipmentCount = null
-				currentEditObject.lineColor = getLineColor(currentEditObject.workType)
-				currentEditObject.completed = 0
-				currentEditObject.inProgress = 0
-				currentEditObject.startDate = null // Сбрасываем дату начала
+			// Устанавливаем дату начала или очищаем её
+			if (inProgressCheckbox.checked) {
+				currentEditObject.startDate = inProgressStartDate.value || null;
+			} else if (!completedCheckbox.checked) {
+				// Очищаем startDate, если оба чекбокса не выставлены
+				currentEditObject.startDate = null;
 			}
 
-			currentEditObject.comment = editCommentInput.value
+			// Устанавливаем поля для завершённого объекта
+			if (completedCheckbox.checked) {
+				if (!endDateInput.value || !equipmentInput.value || !equipmentCountInput.value) {
+					showMessageModal('Пожалуйста, заполните все обязательные поля перед сохранением завершенного объекта.');
+					return;
+				}
+				currentEditObject.endDate = endDateInput.value;
+				currentEditObject.equipment = equipmentInput.value;
+				currentEditObject.equipmentCount = parseInt(equipmentCountInput.value, 10);
+				currentEditObject.lineColor = '#00FF00';
+				currentEditObject.completed = 1;
+				currentEditObject.inProgress = 0;
+			} else if (inProgressCheckbox.checked) {
+				if (!inProgressStartDate.value) {
+					showMessageModal('Пожалуйста, укажите дату начала для объекта в процессе выполнения.');
+					return;
+				}
+				currentEditObject.lineColor = '#0000FF';
+				currentEditObject.completed = 0;
+				currentEditObject.inProgress = 1;
+				currentEditObject.endDate = null;
+				currentEditObject.equipment = null;
+				currentEditObject.equipmentCount = null;
+			} else {
+				// Полный сброс всех данных
+				currentEditObject.endDate = null;
+				currentEditObject.equipment = null;
+				currentEditObject.equipmentCount = null;
+				currentEditObject.startDate = null;
+				currentEditObject.lineColor = getLineColor(currentEditObject.workType);
+				currentEditObject.completed = 0;
+				currentEditObject.inProgress = 0;
+			}
 
-			// Отправляем данные на сервер
+			// Сохранение комментария
+			currentEditObject.comment = editCommentInput.value;
+
+			// Логирование для отладки
+			console.log('Object sent to server:', currentEditObject);
+
+			// Отправка данных на сервер
 			fetch('/update-line', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({
-					id: currentEditObject.id,
-					workType: currentEditObject.workType,
-					comment: currentEditObject.comment,
-					coordinates: currentEditObject.coordinates,
-					lineColor: currentEditObject.lineColor,
-					type: currentEditObject.type,
-					completed: currentEditObject.completed,
-					inProgress: currentEditObject.inProgress,
-					startDate: currentEditObject.startDate,
-					endDate: currentEditObject.endDate, // Отправляем дату завершения
-					equipment: currentEditObject.equipment, // Отправляем оборудование
-					equipmentCount: currentEditObject.equipmentCount // Отправляем количество оборудования
-				})
-			}).then(response => response.json())
+				body: JSON.stringify(currentEditObject)
+			})
+				.then(response => response.json())
 				.then(data => {
+					console.log('Server response:', data);
 					if (data.success) {
-						showMessageModal('Объект успешно обновлен.')
-						loadLines('')
-						editDialog.classList.remove('open')
-						document.querySelector('.toolbar-right').style.right = '10px'
+						showMessageModal('Объект успешно обновлен.');
+						loadLines('');
+						editDialog.classList.remove('open');
+						document.querySelector('.toolbar-right').style.right = '10px';
 
 						if (selectedGeoObject) {
-							selectedGeoObject.selected = false
-							selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor)
-							selectedGeoObject.options.set('strokeWidth', 3)
-							selectedGeoObject = null
+							selectedGeoObject.selected = false;
+							selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor);
+							selectedGeoObject.options.set('strokeWidth', 3);
+							selectedGeoObject = null;
 						}
-
-						resetEditDialog()
+						resetEditDialog();
 					} else {
-						showMessageModal('Ошибка при обновлении объекта: ' + data.message)
+						showMessageModal('Ошибка при обновлении объекта: ' + data.message);
 					}
 				})
 				.catch(error => {
-					console.error('Ошибка при отправке данных на сервер:', error)
-					showMessageModal('Ошибка при отправке данных на сервер.')
-				})
+					console.error('Ошибка при отправке данных на сервер:', error);
+					showMessageModal('Ошибка при отправке данных на сервер.');
+				});
 
-			customBalloon.style.display = 'none'
+			customBalloon.style.display = 'none';
 		}
-	}
+	};
 
 
 	deleteButton.onclick = function() {
@@ -341,13 +352,14 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		customBalloon.style.display = 'none'
 	}
 
-	function loadLines(filterWorkTypes, selectedDistrict = '') {
-		objectManager.removeAll();
-		myMap.geoObjects.removeAll();
+	function loadLines(filterWorkTypes = '', selectedDistrict = '', table = '') {
+		objectManager.removeAll()
+		myMap.geoObjects.removeAll()
 
-		// Формирование URL для запроса с учетом выбранного района
+		// Формирование URL для запроса с учетом выбранного района и таблицы
 		const url = `/get-lines?workTypes=${filterWorkTypes}` +
-			(selectedDistrict ? `&district=${encodeURIComponent(selectedDistrict)}` : '');
+			(selectedDistrict ? `&district=${encodeURIComponent(selectedDistrict)}` : '') +
+			(table ? `&table=${table}` : '')
 
 		fetch(url)
 			.then(response => response.json())
@@ -362,12 +374,12 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 										fillColor: '#00000000',
 										strokeColor: '#007BFF',
 										strokeWidth: 0.6
-									};
+									}
 								}
-							});
+							})
 
-							objectManager.add(geoJson);
-							myMap.geoObjects.add(objectManager);
+							objectManager.add(geoJson)
+							myMap.geoObjects.add(objectManager)
 
 							objectManager.objects.options.set({
 								hasBalloon: false,
@@ -378,15 +390,15 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 							})
 						})
 						.fail(function(jqxhr, textStatus, error) {
-							console.error('Ошибка загрузки GeoJSON:', textStatus, error);
-						});
+							console.error('Ошибка загрузки GeoJSON:', textStatus, error)
+						})
 
 					// Отображение линий, полученных с сервера
 					data.lines.forEach(line => {
 						try {
-							const coordinates = JSON.parse(line.coordinates);
-							let geoObject;
-							const strokeColor = line.line_color;
+							const coordinates = JSON.parse(line.coordinates)
+							let geoObject
+							const strokeColor = line.line_color
 
 							if (line.type === 'Polygon') {
 								geoObject = new ymaps.Polygon([coordinates], {}, {
@@ -395,52 +407,52 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 									strokeWidth: 2,
 									fillColor: strokeColor,
 									fillOpacity: 0
-								});
+								})
 							} else if (line.type === 'Polyline') {
 								geoObject = new ymaps.Polyline(coordinates, {}, {
 									strokeColor: strokeColor,
 									strokeOpacity: 0.6,
 									strokeWidth: 2
-								});
+								})
 							}
 
 							if (line.in_progress) {
-								startSmoothBlinking(geoObject);
+								startSmoothBlinking(geoObject)
 							}
 
 							geoObject.events.add('mouseenter', function() {
-								customBalloon.style.display = 'block';
-								customBalloon.innerHTML = createBalloonContent(line);
+								customBalloon.style.display = 'block'
+								customBalloon.innerHTML = createBalloonContent(line)
 
-								geoObject.options.set('strokeColor', '#0078ff');
-								geoObject.options.set('strokeWidth', 5);
-							});
+								geoObject.options.set('strokeColor', '#0078ff')
+								geoObject.options.set('strokeWidth', 5)
+							})
 
 							geoObject.events.add('mouseleave', function() {
 								if (geoObject !== selectedGeoObject) {
-									customBalloon.style.display = 'none';
-									geoObject.options.set('strokeColor', strokeColor);
-									geoObject.options.set('strokeWidth', 2);
+									customBalloon.style.display = 'none'
+									geoObject.options.set('strokeColor', strokeColor)
+									geoObject.options.set('strokeWidth', 2)
 								}
-							});
+							})
 
 							geoObject.events.add('click', function() {
-								handleEditDialog(line, geoObject);
-								focusOnGeoObject(geoObject);
-							});
+								handleEditDialog(line, geoObject)
+								focusOnGeoObject(geoObject)
+							})
 
-							myMap.geoObjects.add(geoObject);
+							myMap.geoObjects.add(geoObject)
 						} catch (err) {
-							console.error(`Ошибка обработки линии с ID ${line.id}:`, err);
+							console.error(`Ошибка обработки линии с ID ${line.id}:`, err)
 						}
-					});
+					})
 				} else {
-					showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message);
+					showMessageModal('Ошибка при загрузке сохраненных линий: ' + data.message)
 				}
 			})
 			.catch(error => {
-				console.error('Ошибка при загрузке линий:', error);
-			});
+				console.error('Ошибка при загрузке линий:', error)
+			})
 	}
 
 // Функция для создания содержимого Custom Balloon
@@ -461,7 +473,7 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		return content
 	}
 
-// Функция для обработки диалога редактирования
+	// Функция для обработки диалога редактирования
 	function handleEditDialog(line, geoObject) {
 		currentEditObject = {
 			id: line.id,
@@ -472,24 +484,46 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 			type: line.type,
 			completed: line.completed,
 			inProgress: line.in_progress,
-			startDate: line.start_date || null
+			startDate: line.start_date || null,
+			endDate: line.end_date || null,
+			equipment: line.equipment || null,
+			equipmentCount: line.equipment_count || null
 		}
 
-		editCommentInput.value = line.comment
-		completedCheckbox.checked = currentEditObject.completed === 1
+		console.log('Загружаемый объект:', currentEditObject)
 
+		// Установка значений полей из текущего объекта
+		editCommentInput.value = currentEditObject.comment || ''
+		completedCheckbox.checked = currentEditObject.completed === 1
+		inProgressCheckbox.checked = currentEditObject.inProgress === 1
+
+		// Установка даты начала работы, если она есть
+		if (currentEditObject.startDate) {
+			inProgressStartDate.style.display = 'block'
+			inProgressStartDate.value = currentEditObject.startDate
+		} else {
+			inProgressStartDate.style.display = 'none'
+			inProgressStartDate.value = ''
+		}
+
+		// Заполнение дополнительных полей при завершённой работе
 		if (currentEditObject.completed === 1) {
 			additionalFields.style.display = 'block'
-			endDateInput.value = line.end_date
-			equipmentInput.value = line.equipment
-			equipmentCountInput.value = line.equipment_count
+			endDateInput.value = currentEditObject.endDate || ''
+			equipmentInput.value = currentEditObject.equipment || ''
+			equipmentCountInput.value = currentEditObject.equipmentCount || ''
 		} else {
 			additionalFields.style.display = 'none'
+			endDateInput.value = ''
+			equipmentInput.value = ''
+			equipmentCountInput.value = ''
 		}
 
+		// Открытие диалога редактирования
 		editDialog.classList.add('open')
 		document.querySelector('.toolbar-right').style.right = '320px'
 
+		// Выделение объекта на карте
 		if (selectedGeoObject) {
 			selectedGeoObject.selected = false
 			selectedGeoObject.options.set('strokeColor', selectedGeoObject.originalStrokeColor)
@@ -501,8 +535,6 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		geoObject.originalStrokeColor = line.line_color || '#000000'
 		geoObject.options.set('strokeColor', '#0078ff')
 		geoObject.options.set('strokeWidth', 5)
-		customBalloon.style.display = 'block'
-		customBalloon.innerHTML = createBalloonContent(line)
 	}
 
 	// Функция для фокусировки на объекте
@@ -591,14 +623,16 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		}
 	}
 
+	// Функция сброса полей редактирования
 	function resetEditDialog() {
-		if (editCommentInput) editCommentInput.value = ''
-		if (completedCheckbox) completedCheckbox.checked = false
-		if (inProgressStartDate) inProgressStartDate.checked = false
-		if (additionalFields) additionalFields.style.display = 'none'
-		if (endDateInput) endDateInput.value = ''
-		if (equipmentInput) equipmentInput.value = ''
-		if (equipmentCountInput) equipmentCountInput.value = ''
+		editCommentInput.value = '';
+		completedCheckbox.checked = false;
+		inProgressCheckbox.checked = false;
+		inProgressStartDate.value = '';
+		endDateInput.value = '';
+		equipmentInput.value = '';
+		equipmentCountInput.value = '';
+		additionalFields.style.display = 'none';
 	}
 
 	// Открытие модального окна для загрузки фото
@@ -700,6 +734,57 @@ ymaps.ready(['ext.paintOnMap']).then(function() {
 		}
 		customBalloon.style.display = 'none'
 	}
+
+
+	document.getElementById('yeartoggleFilterMenu').addEventListener('click', function(event) {
+		const filterContent = document.getElementById('yearFilterContent')
+		filterContent.style.display = filterContent.style.display === 'none' ? 'block' : 'none'
+
+		// Остановка всплытия, чтобы клик на кнопку не закрывал меню сразу
+		event.stopPropagation()
+	})
+
+	// Закрытие меню при клике за его пределами
+	document.addEventListener('click', function(event) {
+		const filterContent = document.getElementById('yearFilterContent')
+		const toggleButton = document.getElementById('yeartoggleFilterMenu')
+
+		// Проверяем, был ли клик вне меню и кнопки
+		if (filterContent.style.display === 'block' &&
+			!filterContent.contains(event.target) &&
+			event.target !== toggleButton) {
+			filterContent.style.display = 'none'
+		}
+	})
+
+	// Обработчик для изменения года
+	document.getElementById('yearSelect').addEventListener('change', function() {
+		const selectedYear = this.value
+
+		if (selectedYear === '2024') {
+			loadLines('', '', 'lines_2024')  // Передаем параметр table=lines_2024
+			toastr.info('Загружены данные за 2024 год')
+		} else if (selectedYear === '2025') {
+			loadLines('')
+			toastr.info('Загружены данные за 2025 год')
+		} else {
+			loadLines('')
+			toastr.info('Загружены данные за ' + selectedYear + ' год')
+		}
+
+		// Закрытие меню после выбора
+		document.getElementById('yearFilterContent').style.display = 'none'
+	})
+
+	// Обработчик для кнопки сброса
+	document.getElementById('resetYears').addEventListener('click', function() {
+		document.getElementById('yearSelect').value = ''  // Сбрасываем выбор года
+		loadLines('')  // Возвращаем все данные
+		toastr.info('Все данные успешно сброшены')
+
+		// Закрытие меню после сброса
+		document.getElementById('yearFilterContent').style.display = 'none'
+	})
 
 
 }).catch(console.error)

@@ -1,3 +1,10 @@
+header {
+    height: 66px; /* Высота шапки */
+    width: 100%;
+    background-color: #fff; /* Пример цвета фона */
+    border-bottom: 1px solid #ddd; /* Граница под шапкой */
+}
+
 .container {
     max-width: 100%; /* Ограничение ширины */
     max-height: 100%; /* Ограничение высоты */
@@ -12,12 +19,6 @@
     width: 100%;
 }
 
-header {
-    height: 66px; /* Высота шапки */
-    width: 100%;
-    background-color: #fff; /* Пример цвета фона */
-    border-bottom: 1px solid #ddd; /* Граница под шапкой */
-}
 
 .map-container {
     flex: 1; /* Карта заполняет все оставшееся пространство внутри main */
