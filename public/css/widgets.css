@@ -121,7 +121,7 @@
     padding: 20px;
     background: #f6f6f6;
     border-radius: 30px;
-    width: 65%;
+    width: 100%;
     height: 64vh;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease-in-out;
@@ -150,9 +150,9 @@
 .chart-container {
     position: relative;
     height: 50vh; /* Высота графика */
-    width: 70vw; /* Задаем ширину графика относительно родительского контейнера */
-    max-width: 100%; /* Ограничение максимальной ширины */
-    border-radius: 10px; /* Скругленные углы */
+    width: 100%;  /* Занимает всю доступную ширину */
+    max-width: 100%; /* Не выходит за границы родителя */
+    border-radius: 10px;
 }
 
 /* Родительский контейнер, управляющий сеткой */

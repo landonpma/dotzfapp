@@ -1,5 +1,4 @@
 header {
-    height: 66px; /* Высота шапки */
     width: 100%;
     background-color: #fff; /* Пример цвета фона */
     border-bottom: 1px solid #ddd; /* Граница под шапкой */
@@ -15,7 +14,7 @@ header {
 
 .map-container {
     position: relative;
-    height: calc(100vh - 66px); /* За вычетом высоты header */
+    height: calc(100vh - 67px); /* За вычетом высоты header */
     width: 100%;
 }
 
