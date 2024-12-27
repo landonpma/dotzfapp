@@ -13,7 +13,7 @@
     }
 }
 
-@media (max-width: 1330px) {
+@media (max-width: 1500px) {
     .weather-widget,
     .statistic-widget,
     .appeals-events {
@@ -35,18 +35,17 @@
     .main-container::-webkit-scrollbar {
         display: none; /* Скрытие стандартного скроллбара */
     }
-}
-
-@media (max-width: 1330px) {
-    .dashboard {
-        width: 100vw;
-        flex-direction: column;
-        flex-wrap: wrap;
-    }
 
     .current-events {
-        width: 100%;
-        margin: 20px;
+        display: flex;
+        flex-shrink: 0;
+        flex-direction: column;
+        width: 100%; /* Полная ширина для одного элемента */
+        scroll-snap-align: start;
+    }
+
+    .tile-block-container{
+        display: none;
     }
 }
 

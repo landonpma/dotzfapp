@@ -1,6 +1,5 @@
 .dashboard {
     display: flex;
-
 }
 
 .main-container {
@@ -161,7 +160,7 @@
     grid-template-columns: repeat(2, 1fr); /* Две колонки */
     grid-template-rows: repeat(2, 1fr);   /* Две строки */
     gap: 20px; /* Расстояние между контейнерами */
-    width: 100vw;
+    width: 45%;
     margin: 0 20px 20px 20px;
 }
 
@@ -173,7 +172,8 @@
     flex-direction: column; /* Расположение содержимого в колонку */
     align-items: center;
     justify-content: center;
-    min-height: 100px; /* Минимальная высота квадрата */
+    min-width: 160px;
+    min-height: 180px;
     text-align: center;
     padding: 0;
     overflow: hidden;

@@ -42,7 +42,7 @@
     position: absolute;
     top: 86px;
     left: 20px; /* Перемещаем balloon в левый верхний угол */
-    background-color: #0078ff;
+    background-color: rgba(0, 120, 255, 0.9); /* Полупрозрачный синий фон */
     color: #FFFFFF;
     padding: 10px 20px 10px 20px;
     border-radius: 20px;
@@ -151,7 +151,7 @@
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    background-color: rgba(0, 120, 255, 0.8); /* Полупрозрачный синий фон */
+    background-color: rgba(0, 120, 255, 0.9); /* Полупрозрачный синий фон */
     color: white;
     text-align: center;
     align-items: center;

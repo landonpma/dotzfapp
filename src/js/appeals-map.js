@@ -239,29 +239,9 @@ ymaps.ready().then(function() {
 				customBalloon.innerHTML = object.properties.balloonContent
 				customBalloon.style.position = 'absolute'
 
-				// Получение позиции мыши
-				const pageX = e.get('pagePixels')[0]
-				const pageY = e.get('pagePixels')[1]
 
-				// Вычисление позиции с учетом границ экрана
-				const balloonWidth = customBalloon.offsetWidth
-				const balloonHeight = customBalloon.offsetHeight
-				const screenWidth = window.innerWidth
-				const screenHeight = window.innerHeight
-
-				let left = pageX + 20 // Отступ вправо от мыши
-				let top = pageY + 20 // Отступ вниз от мыши
-
-				if (left + balloonWidth > screenWidth) {
-					left = pageX - balloonWidth - 20 // Сместить влево
-				}
-
-				if (top + balloonHeight > screenHeight) {
-					top = pageY - balloonHeight - 20 // Сместить вверх
-				}
-
-				customBalloon.style.left = `${left}px`
-				customBalloon.style.top = `${top}px`
+				customBalloon.style.top = '106px'
+				customBalloon.style.zIndex = '1000'  // поверх всех элементов
 			}
 		}
 	})
