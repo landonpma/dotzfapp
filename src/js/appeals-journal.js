@@ -479,7 +479,65 @@ $(document).ready(function() {
 			})
 	})
 
+	// Загрузка фото через input
+	$('#edit-photo').on('change', function(event) {
+		const files = event.target.files;
+		const formData = new FormData();
+		formData.append('objectId', $('#edit-num').val());
+
+		for (let i = 0; i < files.length; i++) {
+			formData.append('photo', files[i]);
+		}
+
+		fetch('/upload-photo', {
+			method: 'POST',
+			body: formData
+		})
+			.then(response => response.json())
+			.then(result => {
+				if (result.success) {
+					toastr.success('Фото успешно загружено');
+					loadPhotos(result.photoPaths);  // Загрузка фото в карусель
+				} else {
+					toastr.error('Ошибка загрузки фото');
+				}
+			})
+			.catch(error => toastr.error('Ошибка: ' + error));
+	});
+
+// Загрузка фото при открытии деталей обращения
+	$('#data-table').on('click', 'tr', function() {
+		const rowData = table.row(this).data();
+		const appealId = rowData[0];
+
+		fetch(`/get-appeal-photos?num=${appealId}`)
+			.then(response => response.json())
+			.then(result => {
+				if (result.success && result.photoPaths.length > 0) {
+					loadPhotos(result.photoPaths);
+				} else {
+					$('#carousel-images').html('<p class="text-center">Фото отсутствуют</p>');
+				}
+			});
+		$('#detailsModal').modal('show');
+	});
+
 })
+
+// Функция для отображения фотографий в карусели
+function loadPhotos(photoPaths) {
+	const carouselInner = $('#carousel-images');
+	carouselInner.empty();
+
+	photoPaths.forEach((path, index) => {
+		const isActive = index === 0 ? 'active' : '';
+		const carouselItem = `
+            <div class="carousel-item ${isActive}">
+                <img src="${path}" class="d-block w-100" alt="Фото">
+            </div>`;
+		carouselInner.append(carouselItem);
+	});
+}
 
 function isValidCoordinates(coordinates) {
 	const regex = /^[-+]?[0-9]*\.?[0-9]+,[-+]?[0-9]*\.?[0-9]+$/

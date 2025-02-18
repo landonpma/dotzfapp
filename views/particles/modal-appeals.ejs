@@ -20,6 +20,20 @@
                 <p><strong>Источник:</strong> <span id="modal-source"></span></p>
                 <p><strong>Ответственный сотрудник:</strong> <span id="modal-employee"></span></p>
                 <p><strong>Комментарий:</strong> <span id="modal-comment"></span></p>
+                <p><strong>Фото:</strong></p>
+                <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner" id="carousel-images">
+                        <!-- Сюда будут добавляться изображения -->
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Предыдущий</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Следующий</span>
+                    </button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button id="edit-button" class="btn btn-primary">Редактировать</button>
@@ -127,6 +141,11 @@
                 <div class="form-group">
                     <label for="edit-comment">Комментарий:</label>
                     <textarea id="edit-comment" class="form-control"></textarea>
+                </div>
+                <!-- Поле для загрузки фото в модальном окне редактирования -->
+                <div class="form-group">
+                    <label for="edit-photo">Загрузить фото:</label>
+                    <input type="file" id="edit-photo" class="form-control" accept="image/*" multiple>
                 </div>
             </div>
             <div class="modal-footer">

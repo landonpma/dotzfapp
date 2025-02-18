@@ -114,7 +114,8 @@ db.serialize(() => {
             source TEXT,
             employee TEXT,
             deadline DATE,
-            comment TEXT
+            comment TEXT,
+            photo TEXT
         )
     `)
 })
@@ -952,6 +953,8 @@ app.get('/chart-data', (req, res) => {
 		})
 	})
 })
+
+
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
