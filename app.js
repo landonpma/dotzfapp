@@ -137,10 +137,6 @@ app.use((req, res, next) => {
 	next()
 })
 
-app.get('/helpdesk', (req, res) => {
-	res.send('Система заявок');
-});
-
 // Маршрут страницы логина
 app.get('/main', (req, res) => {
 	res.render('main')
