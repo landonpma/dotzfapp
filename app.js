@@ -175,7 +175,7 @@ function checkAuth(req, res, next) {
 
 // Проверка доступа для всех маршрутов, кроме страниц авторизации
 app.use((req, res, next) => {
-	const publicPaths = ['/login', '/register', '/']
+	const publicPaths = ['/login', '/register', '/', '/helpdesk']
 	if (!publicPaths.includes(req.path)) {
 		checkAuth(req, res, next)
 	} else {
