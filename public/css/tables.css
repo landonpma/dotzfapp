@@ -4,12 +4,22 @@
     overflow-y: auto; /* Вертикальная прокрутка */
     position: relative;
     background: #fff; /* Белый фон */
+    width: 100%; /* Использовать всю доступную ширину */
+    max-width: 100%; /* Ограничить ширину контейнера */
+    box-sizing: border-box; /* Чтобы padding не выходил за пределы */
 }
 
 /* Стили для таблицы */
 #data-table {
-    width: 100%;
+    width: 99%;
+    table-layout: fixed; /* Фиксированная ширина для колонок */
     border-collapse: collapse;
+}
+
+#data-table td {
+    white-space: pre-line;
+    word-wrap: break-word;
+    max-width: 150px; /* Ограничение ширины */
 }
 
 
