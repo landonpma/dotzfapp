@@ -40,7 +40,7 @@ ymaps.ready().then(function() {
 
 	objectManager = new ymaps.ObjectManager({
 		clusterize: true,
-		gridSize: 24,
+		gridSize: 6,
 		clusterDisableClickZoom: true,
 		clusterOpenBalloonOnClick: true,
 		clusterBalloonContentLayout: customClusterBalloonLayout,
