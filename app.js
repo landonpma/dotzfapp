@@ -596,7 +596,6 @@ app.get('/get-appeals-part', (req, res) => {
 	})
 })
 
-
 app.post('/update-appeal', (req, res) => {
 	const {
 		num,
@@ -894,8 +893,8 @@ app.get('/latest-appeals', (req, res) => {
 })
 
 app.get('/chart-data', (req, res) => {
-	const startDate = '2024-10-01'
-	const endDate = '2024-12-31'
+	const startDate = '2025-01-01'
+	const endDate = '2025-12-31'
 
 	const monthlyQuery = `
         SELECT date, COUNT(*) AS count
@@ -936,15 +935,17 @@ app.get('/chart-data', (req, res) => {
 				}
 			}
 
-			const octoberData = formatData(splitByMonth(rows, 10))
-			const novemberData = formatData(splitByMonth(rows, 11))
-			const decemberData = formatData(splitByMonth(rows, 12))
+			const januaryData = formatData(splitByMonth(rows, 1))
+			const februaryData = formatData(splitByMonth(rows, 2))
+			const marchData = formatData(splitByMonth(rows, 3))
+			const aprilData = formatData(splitByMonth(rows, 4))
 
 			res.json({
 				success: true,
-				october: octoberData,
-				november: novemberData,
-				december: decemberData,
+				january: januaryData,
+				february: februaryData,
+				march: marchData,
+				april: aprilData,
 				settlements: {
 					labels: settlementRows.map(row => row.settlement),
 					counts: settlementRows.map(row => row.count)

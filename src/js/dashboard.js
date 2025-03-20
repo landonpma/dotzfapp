@@ -95,8 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	let multiMonthChart, settlementsChart
 
 	// Рендеринг наложенного графика для нескольких месяцев
-	const renderMultiMonthChart = (october, november, december) => {
-		const combinedLabels = Array.from(new Set([...october.labels, ...november.labels, ...december.labels])).sort((a, b) => a - b);
+	const renderMultiMonthChart = (january, february, march, april) => {
+		const combinedLabels = Array.from(new Set([...january.labels, ...february.labels, ...march.labels, ...april.labels])).sort((a, b) => a - b);
 
 		const syncData = (data, combinedLabels) => {
 			return combinedLabels.map(label => {
@@ -105,9 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			});
 		};
 
-		const dataOctober = syncData(october, combinedLabels);
-		const dataNovember = syncData(november, combinedLabels);
-		const dataDecember = syncData(december, combinedLabels);
+		const dataJanuary = syncData(january, combinedLabels);
+		const dataFebruary = syncData(february, combinedLabels);
+		const dataMarch = syncData(march, combinedLabels);
+		const dataApril = syncData(april, combinedLabels);
 
 		const ctx = document.getElementById('multiMonthChart').getContext('2d');
 		multiMonthChart = new Chart(ctx, {
@@ -116,23 +117,33 @@ document.addEventListener('DOMContentLoaded', () => {
 				labels: combinedLabels,
 				datasets: [
 					{
-						label: 'Октябрь',
-						data: dataOctober,
+						label: 'Январь',
+						data: dataJanuary,
 						borderColor: '#007bff',
 						tension: 0.3,
+						hidden: true,
 					},
 					{
-						label: 'Ноябрь',
-						data: dataNovember,
+						label: 'Февраль',
+						data: dataFebruary,
 						borderColor: '#28a745',
 						tension: 0.3,
+						hidden: true,
 					},
 					{
-						label: 'Декабрь',
-						data: dataDecember,
+						label: 'Март',
+						data: dataMarch,
 						borderColor: '#ffc107',
 						tension: 0.3,
+						hidden: false,
 					},
+					// {
+					// 	label: 'Апрель',
+					// 	data: dataApril,
+					// 	borderColor: '#e607ff',
+					// 	tension: 0.3,
+					// 	hidden: true,
+					// },
 				],
 			},
 			options: {
@@ -159,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					x: {
 						title: {
 							display: true,
-							text: 'Дни месяца',
+							text: 'Дни месяца (1 квартал 2025 г.)',
 						},
 						grid: {
 							display: true,
@@ -234,12 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		.then(response => response.json())
 		.then(data => {
 			if (data.success) {
-				const october = data.october
-				const november = data.november
-				const december = data.december
+				const january = data.january
+				const february = data.february
+				const march = data.march
+				const april = data.april
 
 				// Рендерим график по месяцам (по умолчанию)
-				renderMultiMonthChart(october, november, december)
+				renderMultiMonthChart(january, february, march, april)
 
 				// Рендерим график по поселениям при переключении вкладки
 				document.getElementById('by-settlement-tab').addEventListener('click', () => {

@@ -22,8 +22,8 @@ $(document).ready(function() {
 		offset = 0
 		totalSearchResults = 0
 		isSearchMode = false
-		table.clear().draw() // Очистить таблицу
-		$(window).off('scroll') // Убрать автоподгрузку
+		table.clear().draw()
+		$(window).off('scroll')
 	}
 
 	function loadMoreData() {
