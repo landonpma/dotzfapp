@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			eventElement.classList.add('event')
 			eventElement.innerHTML = `
     		<p style="margin: 0;"><strong>Номер заявления:</strong> ${appeal.num}</p>
-    		<p style="margin: 0;"><strong>Поселение:</strong> ${appeal.settlement}</p>
+    		<p style="margin: 0;"><strong>Район:</strong> ${appeal.settlement}</p>
     		<p style="margin: 0;"><strong>Ответственный:</strong> ${appeal.employee}</p>
     		<p style="margin: 0;"><strong>Статус:</strong> ${appeal.status}</p>
 			`
@@ -135,15 +135,15 @@ document.addEventListener('DOMContentLoaded', () => {
 						data: dataMarch,
 						borderColor: '#ffc107',
 						tension: 0.3,
-						hidden: false,
+						hidden: true,
 					},
-					// {
-					// 	label: 'Апрель',
-					// 	data: dataApril,
-					// 	borderColor: '#e607ff',
-					// 	tension: 0.3,
-					// 	hidden: true,
-					// },
+					{
+						label: 'Апрель',
+					 	data: dataApril,
+					 	borderColor: '#e607ff',
+					 	tension: 0.3,
+					 	hidden: false,
+					},
 				],
 			},
 			options: {
